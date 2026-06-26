@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import Bottle from '../../components/Bottle.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import data from '../../data/products.json';
+
+export function getStaticPaths() {
+  return data.products.map((p) => ({ params: { id: p.id }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+const { id, name, price, oldPrice, description, art, image, badges = [] } = product;
+const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+const hasPhoto = image && !image.includes('...');
+const related = data.products.filter((p) => p.id !== id).slice(0, 3);
+---
+<Base title={`${name} — EcoPremi`} description={product.short}>
+  <section style="padding-top:48px">
+    <div class="pd">
+      <div class={`pd-media ${art}`}>
+        {hasPhoto ? <img src={image} alt={name} /> : <Bottle art={art} />}
+      </div>
+      <div class="pd-info">
+        <div class="crumbs"><a href="/">Главная</a> / <a href="/catalog">Каталог</a> / {name}</div>
+        <h1>{name}</h1>
+        <div class="pd-badges">
+          {badges.map((b) => <span>{b}</span>)}
+          <span>Артикул {id}</span>
+        </div>
+        <div class="pd-price">
+          <b>{price.toLocaleString('ru-RU')} ₽</b>
+          {oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}
+          {disc > 0 && <span class="disc">−{disc}%</span>}
+        </div>
+        <p class="desc">{description}</p>
+        <div class="pd-actions">
+          <button class="btn btn-g" data-order data-product={name} data-price={price}>Заказать</button>
+          <a href="/delivery" class="btn btn-dark" style="color:var(--olive)">Доставка и оплата</a>
+        </div>
+        <div class="pd-note">
+          Свежий отжим под заказ — давим в день отправки. Хранить в холодильнике в тёмной таре.
+          Бесплатная доставка от 10&nbsp;000&nbsp;₽. Оплата картой по согласованию после подтверждения заказа.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:24px">
+    <div class="section-inner">
+      <div class="head"><div class="lbl ey">Ещё масла</div><h2>Может <em>понравиться</em></h2><div class="rule"></div></div>
+      <div class="grid">
+        {related.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+</Base>

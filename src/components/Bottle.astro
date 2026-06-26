@@ -1,0 +1,31 @@
+---
+// Декоративная SVG-бутылка как плейсхолдер до получения фото от клиента.
+// art: t1 — лён (синий цветок), t2 — тыква (семена), t3 — конопля (лист)
+const { art = 't1' } = Astro.props;
+const fill = { t1: '#cfe0a8', t2: '#e7c878', t3: '#cdd9b0' }[art] || '#cfe0a8';
+const stroke = { t1: '#7d8a5a', t2: '#b58c33', t3: '#7d8a5a' }[art] || '#7d8a5a';
+---
+<svg viewBox="0 0 120 150" fill="none" aria-hidden="true">
+  <rect x="46" y="14" width="14" height="14" rx="2" fill="#2f3a22"></rect>
+  <path d="M44 28h18l5 16c2 7 3 13 3 22v58c0 9-6 14-17 14s-17-5-17-14V66c0-9 1-15 3-22z" fill={fill} stroke={stroke} stroke-width="1.2"></path>
+  <rect x="38" y="78" width="34" height="44" rx="2" fill="#fff" opacity=".9"></rect>
+  { art === 't1' && (
+    <g transform="translate(86,96)">
+      <circle r="9" fill="#9fb0d6"></circle>
+      <circle r="3" fill="#d9c46a"></circle>
+      <path d="M0 -13 0 13 M-13 0 13 0 M-9 -9 9 9 M9 -9 -9 9" stroke="#b9c6e6" stroke-width="3" stroke-linecap="round"></path>
+    </g>
+  )}
+  { art === 't2' && (
+    <g transform="translate(84,100)" fill="#cd9b4e" stroke="#a87f2e" stroke-width="1">
+      <ellipse cx="0" cy="0" rx="6" ry="10"></ellipse>
+      <ellipse cx="11" cy="6" rx="6" ry="10" transform="rotate(35 11 6)"></ellipse>
+      <ellipse cx="-10" cy="6" rx="6" ry="10" transform="rotate(-35 -10 6)"></ellipse>
+    </g>
+  )}
+  { art === 't3' && (
+    <g transform="translate(86,98)" stroke="#5f7a45" stroke-width="1.4" fill="none">
+      <path d="M0 16 L0 -16 M0 0 C-14 -4 -16 -16 -12 -22 C-4 -18 -2 -8 0 0 M0 0 C14 -4 16 -16 12 -22 C4 -18 2 -8 0 0 M0 4 C-12 2 -16 -6 -14 -12 M0 4 C12 2 16 -6 14 -12"></path>
+    </g>
+  )}
+</svg>

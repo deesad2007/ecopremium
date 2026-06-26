@@ -1,0 +1,35 @@
+---
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href) => (href === '/' ? path === '/' : path.startsWith(href));
+const links = [
+  { href: '/catalog', label: 'Каталог' },
+  { href: '/about', label: 'Технология' },
+  { href: '/delivery', label: 'Доставка' },
+  { href: '/contacts', label: 'Контакты' },
+];
+---
+<div class="announce">
+  Поставщик Московского Кремля · Органический сертификат ГОСТ 33980-2016 · <b>Бесплатная доставка от 10&nbsp;000&nbsp;₽</b>
+</div>
+
+<header class="site">
+  <a href="/" class="brand">Eco<i>Premi</i><small>Поставщик Кремля</small></a>
+  <nav class="main" id="mainNav">
+    {links.map((l) => (
+      <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>{l.label}</a>
+    ))}
+  </nav>
+  <a href="/catalog" class="nav-cta">Каталог масел</a>
+  <button class="burger" id="burger" aria-label="Меню" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<script>
+  const burger = document.getElementById('burger');
+  const nav = document.getElementById('mainNav');
+  burger?.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    burger.setAttribute('aria-expanded', String(open));
+  });
+</script>

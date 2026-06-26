@@ -1,0 +1,141 @@
+---
+import Base from '../layouts/Base.astro';
+import Credentials from '../components/Credentials.astro';
+import Regalia from '../components/Regalia.astro';
+import ProductCard from '../components/ProductCard.astro';
+import data from '../data/products.json';
+
+const products = data.products;
+const usp = [
+  { t: 'Поставщик Московского Кремля', d: 'Контроль качества в лаборатории Управделами Президента РФ.' },
+  { t: 'Единственный органик ГОСТ в России', d: 'Органический сертификат ГОСТ 33980-2016, №065 «Роскачество», Госреестр Минсельхоза.' },
+  { t: 'Ручной отжим на дереве', d: 'Деревянный пресс при комнатной температуре, без нагрева и контакта с металлом.' },
+  { t: 'Свежее под заказ', d: 'Не давим впрок — отжим в день отправки. Сегодня формируем заказы на завтра.' },
+];
+---
+<Base>
+  {/* ── HERO ── */}
+  <div class="hero">
+    <div class="hero-grain"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="kremlin-line">
+          <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-7h6v7"/></svg>
+          Поставщик Московского Кремля
+        </div>
+        <h1>Сыродавленные масла, <em>как сотни лет назад</em></h1>
+        <div class="rule"></div>
+        <p class="lead">Давим вручную на деревянном прессе при комнатной температуре — без нагрева и контакта с металлом. Так сохраняется природный вкус, аромат и состав сырья.</p>
+        <div class="acts">
+          <a href="/catalog" class="btn btn-g">Выбрать масло</a>
+          <a href="/about" class="btn btn-o">Наша технология</a>
+        </div>
+        <div class="hero-badges">
+          <span>Органик ГОСТ 33980-2016</span>
+          <span>№065 Роскачество</span>
+          <span>Лаборатория УД Президента РФ</span>
+        </div>
+      </div>
+      <div class="art">
+        <div class="frame2"></div><div class="frame"></div>
+        <svg class="bottle" width="240" height="380" viewBox="0 0 240 380" fill="none">
+          <g stroke="#7d8a5a" stroke-width="1.4" opacity="0.8">
+            <path d="M40 360 C30 270 70 210 58 120" fill="none"/>
+            <path d="M58 150 C40 150 30 138 33 124 C47 126 56 136 58 150Z" fill="#6f7d4f" stroke="none"/>
+            <path d="M58 188 C76 188 86 176 83 162 C69 164 60 174 58 188Z" fill="#6f7d4f" stroke="none"/>
+            <circle cx="58" cy="116" r="11" fill="#9fb0d6"/><circle cx="58" cy="116" r="4" fill="#d9c46a"/>
+            <path d="M58 116 l0 -14 M58 116 l-12 -7 M58 116 l12 -7 M58 116 l-12 7 M58 116 l12 7" stroke="#b9c6e6" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <rect x="92" y="70" width="24" height="26" rx="3" fill="#2f3a22"/>
+          <path d="M88 96 h32 l8 26 c4 12 6 22 6 40 v150 c0 16 -10 26 -30 26 h0 c-20 0 -30 -10 -30 -26 V162 c0 -18 2 -28 6 -40 Z" fill="url(#oil)"/>
+          <path d="M88 96 h32 l8 26 c4 12 6 22 6 40 v150 c0 16 -10 26 -30 26 h0 c-20 0 -30 -10 -30 -26 V162 c0 -18 2 -28 6 -40 Z" fill="none" stroke="#caa64f" stroke-width="1.5" opacity="0.7"/>
+          <rect x="78" y="190" width="60" height="92" rx="3" fill="#f3eee1" opacity="0.96"/>
+          <text x="108" y="222" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#3a4527" font-style="italic">EcoPremi</text>
+          <line x1="90" y1="232" x2="126" y2="232" stroke="#c2a35a" stroke-width="1"/>
+          <text x="108" y="250" text-anchor="middle" font-family="Georgia,serif" font-size="8.5" fill="#6a7350" letter-spacing="1">СЫРОДАВЛЕННОЕ</text>
+          <text x="108" y="263" text-anchor="middle" font-family="Georgia,serif" font-size="8.5" fill="#6a7350" letter-spacing="1">ОРГАНИЧЕСКОЕ</text>
+          <ellipse cx="108" cy="300" rx="30" ry="6" fill="#1a2012" opacity="0.4"/>
+          <defs>
+            <linearGradient id="oil" x1="0" y1="96" x2="0" y2="320" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#e8c873"/><stop offset="1" stop-color="#a87f23"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="seal"><div class="lbl">Поставщик</div><b>Кремля</b><div class="lbl">органик ГОСТ</div></div>
+      </div>
+    </div>
+  </div>
+
+  {/* ── TRUST STRIP ── */}
+  <Credentials />
+
+  {/* ── TOP PRODUCTS ── */}
+  <section id="catalog">
+    <div class="section-inner">
+      <div class="head">
+        <div class="lbl ey">Каталог</div>
+        <h2>Масла, отжатые <em>сегодня для вас</em></h2>
+        <div class="rule"></div>
+      </div>
+      <div class="grid">
+        {products.map((p) => <ProductCard product={p} />)}
+      </div>
+      <div style="text-align:center;margin-top:48px">
+        <a href="/catalog" class="btn btn-dark">Весь каталог</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ── TECHNOLOGY ── */}
+  <section class="craft" id="craft">
+    <div class="section-inner">
+      <div class="head light">
+        <div class="lbl ey" style="color:var(--gold)">Технология</div>
+        <h2>Почему <em>сыродавленное</em></h2>
+        <div class="rule"></div>
+      </div>
+      <div class="vs">
+        <div class="vbox bad">
+          <div class="tag">Холодный отжим</div>
+          <p>Семена прогоняют через металлический шнековый пресс, где они нагреваются. Часть полезных веществ теряется, масло окисляется при контакте с металлом, нередко добавляют консерванты.</p>
+        </div>
+        <div class="vbox good">
+          <div class="tag">Сыродавленное</div>
+          <p>Давим старинным способом на ручном прессе при комнатной температуре, без соприкосновения с металлом. Биологически активные вещества сырья сохраняются.</p>
+        </div>
+      </div>
+      <div class="note">Приезжайте на маслодельню и увидите весь процесс своими глазами — нам нечего скрывать.</div>
+    </div>
+  </section>
+
+  {/* ── USP LIST ── */}
+  <section>
+    <div class="section-inner">
+      <div class="head">
+        <div class="lbl ey">Почему мы</div>
+        <h2>Чем мы <em>отличаемся</em></h2>
+        <div class="rule"></div>
+      </div>
+      <ul class="usp">
+        {usp.map((u) => (
+          <li>
+            <span class="ic"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <div><b>{u.t}</b><p>{u.d}</p></div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {/* ── REGALIA ── */}
+  <Regalia />
+
+  {/* ── CLOSING CTA ── */}
+  <section class="closing">
+    <div class="section-inner">
+      <h2>Закажите масло, <em>отжатое именно для вас</em></h2>
+      <p>Формируем заказы сегодня — на завтра. Бесплатная доставка от 10&nbsp;000&nbsp;₽ по всей России.</p>
+      <button class="btn btn-g" data-order>Оформить заявку</button>
+    </div>
+  </section>
+</Base>

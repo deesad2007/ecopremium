@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Credentials from '../components/Credentials.astro';
+import data from '../data/products.json';
+
+const products = data.products;
+const categories = ['Все', ...new Set(products.map((p) => p.category))];
+---
+<Base title="Каталог масел — EcoPremi" description="Каталог сыродавленных органических масел EcoPremi: льняное, тыквенное, конопляное. Ручной отжим, свежий отжим под заказ.">
+  <section class="page-hero">
+    <div class="ey lbl">Каталог</div>
+    <h1>Живые масла <em>ручного отжима</em></h1>
+    <p>Отжимаем под заказ. Все позиции — органическое сырьё, деревянный пресс, без нагрева. Описания — без медицинских заявлений.</p>
+  </section>
+
+  <section>
+    <div class="section-inner">
+      <div class="filters" id="filters">
+        {categories.map((c, i) => (
+          <button class={i === 0 ? 'active' : ''} data-filter={c}>{c}</button>
+        ))}
+      </div>
+      <div class="grid" id="catalogGrid">
+        {products.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <Credentials />
+</Base>
+
+<script>
+  const filters = document.getElementById('filters');
+  const cards = Array.from(document.querySelectorAll('#catalogGrid .pc'));
+  filters?.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    filters.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    cards.forEach((c) => {
+      c.style.display = f === 'Все' || c.dataset.category === f ? '' : 'none';
+    });
+  });
+</script>

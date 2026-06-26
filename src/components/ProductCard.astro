@@ -1,0 +1,25 @@
+---
+import Bottle from './Bottle.astro';
+const { product } = Astro.props;
+const { id, name, price, oldPrice, short, art, image, badges = [] } = product;
+const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+const hasPhoto = image && !image.includes('...');
+---
+<article class="pc" data-category={product.category}>
+  <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
+    {disc > 0 && <span class="disc">−{disc}%</span>}
+    {badges.includes('Органик ГОСТ') && (
+      <span class="organic"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/></svg>Органик ГОСТ</span>
+    )}
+    {hasPhoto ? <img src={image} alt={name} loading="lazy" /> : <Bottle art={art} />}
+  </a>
+  <div class="body">
+    <div class="art-no">Артикул {id}</div>
+    <h3><a href={`/product/${id}`} style="text-decoration:none;color:inherit">{name}</a></h3>
+    <div class="desc">{short}</div>
+    <div class="foot">
+      <div class="price"><b>{price.toLocaleString('ru-RU')} ₽</b>{oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}</div>
+      <button class="add" data-order data-product={name} data-price={price}>Заказать</button>
+    </div>
+  </div>
+</article>

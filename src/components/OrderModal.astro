@@ -1,0 +1,160 @@
+---
+// Сквозная модалка заказа. Открывается любой кнопкой с атрибутом data-order
+// (опц. data-product="Название" data-price="390"). Шлёт заявку в Netlify-функцию.
+---
+<div class="modal-backdrop" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="lbl ey" style="color:var(--gold)">Заявка на заказ</div>
+      <h3 id="orderTitle">Оформление заказа</h3>
+      <button class="x" id="orderClose" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="order-summary" id="orderSummary" hidden>
+        <span id="orderSummaryName">Товар</span>
+        <b id="orderSummaryPrice">—</b>
+      </div>
+      <form id="orderForm" novalidate>
+        <input type="hidden" name="product" id="fProduct" />
+        <input type="hidden" name="price" id="fPrice" />
+        <input type="hidden" name="page" id="fPage" />
+        {/* honeypot против спама */}
+        <input type="text" name="company" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true" />
+
+        <div class="field">
+          <label for="fName">Ваше имя <span class="req">*</span></label>
+          <input type="text" id="fName" name="name" required autocomplete="name" placeholder="Как к вам обращаться" />
+        </div>
+        <div class="field">
+          <label for="fPhone">Телефон <span class="req">*</span></label>
+          <input type="tel" id="fPhone" name="phone" required autocomplete="tel" placeholder="+7 ___ ___-__-__" />
+        </div>
+        <div class="field">
+          <label for="fEmail">Email</label>
+          <input type="email" id="fEmail" name="email" autocomplete="email" placeholder="для дубля заявки" />
+        </div>
+        <div class="field">
+          <label for="fComposition">Состав заказа</label>
+          <textarea id="fComposition" name="composition" placeholder="Что и сколько хотите заказать"></textarea>
+        </div>
+        <div class="field">
+          <label for="fDelivery">Способ доставки</label>
+          <select id="fDelivery" name="delivery">
+            <option value="">— выберите —</option>
+            <option>Доставка по Москве</option>
+            <option>СДЭК / транспортная компания по России</option>
+            <option>Почта России</option>
+            <option>Самовывоз с маслодельни</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fPromo">Промокод</label>
+          <div class="promo-row">
+            <input type="text" id="fPromo" name="promo" placeholder="Если есть" />
+            <button type="button" id="promoBtn">Активировать</button>
+          </div>
+          <div class="pay-note" id="promoNote" hidden></div>
+        </div>
+        <div class="field">
+          <label for="fComment">Комментарий</label>
+          <textarea id="fComment" name="comment" placeholder="Город, адрес, пожелания"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-dark" id="orderSubmit" style="width:100%;color:var(--olive)">Отправить заявку</button>
+        <p class="pay-note">Оплата банковской картой (Visa, Mastercard) — по согласованию после подтверждения заказа.
+          Заявка дублируется в Telegram и на e-mail. Нажимая кнопку, вы соглашаетесь на обработку данных.</p>
+        <div class="form-msg" id="orderMsg" role="status"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('orderModal');
+  const form = document.getElementById('orderForm');
+  const msg = document.getElementById('orderMsg');
+  const submit = document.getElementById('orderSubmit');
+  const summary = document.getElementById('orderSummary');
+  const sumName = document.getElementById('orderSummaryName');
+  const sumPrice = document.getElementById('orderSummaryPrice');
+
+  function openModal(product, price) {
+    form.reset();
+    msg.className = 'form-msg';
+    document.getElementById('fProduct').value = product || '';
+    document.getElementById('fPrice').value = price || '';
+    document.getElementById('fPage').value = location.pathname;
+    if (product) {
+      summary.hidden = false;
+      sumName.textContent = product;
+      sumPrice.textContent = price ? Number(price).toLocaleString('ru-RU') + ' ₽' : '';
+      document.getElementById('fComposition').value = price
+        ? `${product} — ${Number(price).toLocaleString('ru-RU')} ₽` : product;
+    } else {
+      summary.hidden = true;
+    }
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('fName').focus(), 50);
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-order]');
+    if (trigger) {
+      e.preventDefault();
+      openModal(trigger.getAttribute('data-product'), trigger.getAttribute('data-price'));
+    }
+    if (e.target.id === 'orderClose' || e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  // Промокод — заглушка (реальная проверка появится при подключении Робокассы/CRM)
+  document.getElementById('promoBtn')?.addEventListener('click', () => {
+    const note = document.getElementById('promoNote');
+    const val = document.getElementById('fPromo').value.trim();
+    note.hidden = false;
+    note.textContent = val
+      ? 'Промокод сохранён в заявке — менеджер применит скидку при подтверждении.'
+      : 'Введите промокод.';
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.className = 'form-msg';
+    const name = form.name.value.trim();
+    const phone = form.phone.value.trim();
+    if (!name || !phone) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Пожалуйста, укажите имя и телефон.';
+      return;
+    }
+    if (form.company.value) return; // honeypot
+    submit.disabled = true;
+    const original = submit.textContent;
+    submit.textContent = 'Отправляем…';
+    try {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch('/.netlify/functions/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('bad status ' + res.status);
+      msg.className = 'form-msg ok';
+      msg.textContent = 'Спасибо! Заявка принята. Мы свяжемся с вами в ближайшее время.';
+      form.reset();
+      summary.hidden = true;
+      if (window.ym) window.ym(Number(99571167), 'reachGoal', 'order_submit');
+    } catch (err) {
+      msg.className = 'form-msg err';
+      msg.innerHTML = 'Не удалось отправить онлайн. Напишите нам в <a href="https://wa.me/79654128540" target="_blank" rel="noopener">WhatsApp</a> или <a href="https://t.me/EkoPremi" target="_blank" rel="noopener">Telegram</a> — ответим быстро.';
+    } finally {
+      submit.disabled = false;
+      submit.textContent = original;
+    }
+  });
+</script>

@@ -1,0 +1,37 @@
+---
+import { contacts } from '../data/site.js';
+---
+<footer class="site">
+  <div class="fcols">
+    <div>
+      <a href="/" class="brand">Eco<i style="color:var(--gold);font-style:normal">Premi</i></a>
+      <p>Живые сыродавленные органические масла. Поставщик Московского Кремля. Ручной отжим на деревянном прессе. Работаем для вас без выходных.</p>
+    </div>
+    <div>
+      <h5>Магазин</h5>
+      <a href="/catalog">Каталог масел</a>
+      <a href="/about">Технология</a>
+      <a href="/delivery">Доставка и оплата</a>
+      <a href="/contacts">Контакты</a>
+    </div>
+    <div>
+      <h5>Регалии</h5>
+      <a href="/about#regalia">Поставщик Кремля</a>
+      <a href="/about#regalia">Органик ГОСТ 33980-2016</a>
+      <a href="/about#regalia">№065 Роскачество</a>
+      <a href="/about#regalia">Госреестр Минсельхоза</a>
+    </div>
+    <div>
+      <h5>Контакты</h5>
+      <a href={`tel:${contacts.phoneRaw}`}>{contacts.phone}</a>
+      <a href={contacts.whatsapp} target="_blank" rel="noopener">WhatsApp</a>
+      <a href={contacts.telegram} target="_blank" rel="noopener">Telegram</a>
+      <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+      <a href={contacts.vk} target="_blank" rel="noopener">ВКонтакте</a>
+    </div>
+  </div>
+  <div class="copy">
+    © 2019–2026 EcoPremi · ekopremium.ru
+    <span class="disclaimer">Информация на сайте носит справочный характер и не является медицинской рекомендацией. Не является лекарственным средством.</span>
+  </div>
+</footer>
