@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="Поставщик Московского Кремля">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6cd86"/>
+      <stop offset="0.5" stop-color="#d4af55"/>
+      <stop offset="1" stop-color="#b6892f"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="290" height="290" rx="22" fill="#ffffff" stroke="#e2dcc8" stroke-width="2"/>
+  <text x="150" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="21" letter-spacing="3" fill="#26301a">ПОСТАВЩИК</text>
+
+  <!-- tricolor brush behind crest -->
+  <g transform="translate(150,128) rotate(-15)">
+    <rect x="-66" y="-32" width="132" height="20" rx="10" fill="#ffffff" stroke="#e2dcc8" stroke-width="1"/>
+    <rect x="-66" y="-10" width="132" height="20" rx="10" fill="#0a51a1"/>
+    <rect x="-66" y="12"  width="132" height="20" rx="10" fill="#d62718"/>
+  </g>
+
+  <!-- gold crest: ball + spire + tower + crenellated wall + gate base -->
+  <g fill="url(#gold)" stroke="#9c7526" stroke-width="0.6">
+    <circle cx="150" cy="66" r="4.5"/>
+    <path d="M150 70 L141 96 L159 96 Z"/>
+    <rect x="142" y="96" width="16" height="22"/>
+    <!-- crenels -->
+    <rect x="99"  y="110" width="12" height="10"/>
+    <rect x="121" y="110" width="12" height="10"/>
+    <rect x="143" y="110" width="12" height="10"/>
+    <rect x="165" y="110" width="12" height="10"/>
+    <rect x="187" y="110" width="12" height="10"/>
+    <!-- wall bar -->
+    <rect x="97" y="120" width="106" height="20"/>
+    <!-- gate building base -->
+    <rect x="106" y="140" width="88" height="26"/>
+    <!-- steps -->
+    <rect x="98" y="166" width="104" height="7"/>
+  </g>
+  <!-- arch gate cutout -->
+  <path d="M140 166 v-12 a10 10 0 0 1 20 0 v12 Z" fill="#ffffff"/>
+
+  <text x="150" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="20" letter-spacing="2" fill="#26301a">МОСКОВСКОГО</text>
+  <text x="150" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="20" letter-spacing="4" fill="#26301a">КРЕМЛЯ</text>
+</svg>

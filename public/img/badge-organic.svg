@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="Органический сертификат ГОСТ 33980-2016">
+  <defs>
+    <linearGradient id="og" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#74bd45"/>
+      <stop offset="1" stop-color="#4f9a2a"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="290" height="290" rx="22" fill="#ffffff" stroke="#e2dcc8" stroke-width="2"/>
+  <!-- green organic mark -->
+  <rect x="92" y="30" width="116" height="116" rx="18" fill="url(#og)"/>
+  <text x="150" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="19" letter-spacing="1.5" fill="#ffffff">ОРГАНИК</text>
+  <!-- leaves -->
+  <g transform="translate(150,92)" fill="#ffffff">
+    <path d="M0 18 C-2 6 -12 0 -20 -2 C-18 8 -10 16 0 18 Z"/>
+    <path d="M2 16 C4 4 14 -2 22 -4 C20 6 12 14 2 16 Z"/>
+    <path d="M1 19 C1 10 1 2 1 -6" stroke="#ffffff" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+  <text x="150" y="134" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="2.5" fill="#ffffff">ORGANIC</text>
+  <!-- gost -->
+  <text x="150" y="196" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="26" letter-spacing="0.5" fill="#1f2a16">ГОСТ</text>
+  <text x="150" y="226" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="22" letter-spacing="1" fill="#1f2a16">33980-2016</text>
+  <line x1="92" y1="244" x2="208" y2="244" stroke="#d9cda8" stroke-width="1.5"/>
+  <text x="150" y="268" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="12.5" letter-spacing="2" fill="#6b6a55">ОРГАНИЧЕСКИЙ СТАНДАРТ</text>
+</svg>
