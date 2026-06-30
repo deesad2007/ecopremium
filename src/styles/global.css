@@ -70,7 +70,7 @@ nav.main a:hover, nav.main a[aria-current="page"] { color: var(--gold-d); }
 .hero h1 em { font-style: italic; color: var(--gold); }
 .rule { width: 64px; height: 2px; background: var(--gold); margin: 26px 0; }
 .hero p.lead { font-size: 17px; color: #cfcab5; max-width: 430px; line-height: 1.75; }
-.hero .acts { margin-top: 30px; display: flex; gap: 16px; flex-wrap: wrap; }
+.hero .acts { margin-top: 22px; display: flex; gap: 16px; flex-wrap: wrap; }
 /* акцентный текстовый блок в герое — заметный, как на их сайте */
 .hero-accent { max-width: 640px; }
 .hero-accent p { font-size: 18px; line-height: 1.7; color: #e6e2d2; margin-bottom: 16px; }
@@ -284,9 +284,9 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
   .regalia-grid { grid-template-columns: repeat(2, 1fr); }
   .usp { grid-template-columns: 1fr; }
   .art { display: none; }
-  .hero-inner { padding: 40px 7% 52px; }
+  .hero-inner { padding: 20px 7% 44px; }
   /* на телефоне значки в ряд и сверху (несмотря на правую колонку на десктопе) */
-  .hero-seals { order: -1; flex-direction: row; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .hero-seals { order: -1; flex-direction: row; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
   .seal-card { flex: 1 1 0; min-width: 130px; padding: 14px 12px; }
   .seal-kremlin img { height: 96px; }
   .seal-organic img { height: 116px; }
