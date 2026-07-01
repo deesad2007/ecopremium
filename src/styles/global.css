@@ -77,6 +77,8 @@ nav.main a:hover, nav.main a[aria-current="page"] { color: var(--gold-d); }
 .hero-accent p:last-child { margin-bottom: 0; }
 .hero-accent b { color: var(--gold); font-weight: 700; }
 .hero-accent .muted { color: #a7a890; font-weight: 400; }
+.hero-accent p.acc-gold { color: var(--gold); font-weight: 600; }
+.hero-accent p.acc-gold .w { color: var(--bone); font-weight: 400; }
 
 /* ── hero art ── */
 .art { position: relative; height: 460px; display: flex; align-items: center; justify-content: center; }
@@ -285,8 +287,9 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
   .usp { grid-template-columns: 1fr; }
   .art { display: none; }
   .hero-inner { padding: 20px 7% 44px; }
+  .hero-inner.hero-2col { gap: 22px; }
   /* на телефоне значки в ряд и сверху (несмотря на правую колонку на десктопе) */
-  .hero-seals { order: -1; flex-direction: row; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .hero-seals { order: -1; flex-direction: row; gap: 12px; margin-bottom: 0; flex-wrap: wrap; }
   .seal-card { flex: 1 1 0; min-width: 130px; padding: 14px 12px; }
   .seal-kremlin img { height: 96px; }
   .seal-organic img { height: 116px; }
