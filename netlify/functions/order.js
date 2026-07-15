@@ -38,6 +38,7 @@ export const handler = async (event) => {
     email: (data.email || '').trim(),
     product: (data.product || '').trim(),
     price: Number(data.price) || 0,
+    volume: (data.volume || '').trim(),
     composition: (data.composition || '').trim(),
     delivery: (data.delivery || '').trim(),
     promo: (data.promo || '').trim(),
@@ -92,6 +93,7 @@ async function sendToAmoCRM(order, leadTitle) {
   }
 
   const noteText = [
+    order.volume && `Объём: ${order.volume}`,
     order.composition && `Состав: ${order.composition}`,
     order.delivery && `Доставка: ${order.delivery}`,
     order.promo && `Промокод: ${order.promo}`,
@@ -138,6 +140,7 @@ async function sendToTelegram(order, leadTitle) {
     `📞 <b>Телефон:</b> ${esc(order.phone)}`,
     order.email && `✉️ <b>Email:</b> ${esc(order.email)}`,
     order.price && `💰 <b>Сумма:</b> ${order.price.toLocaleString('ru-RU')} ₽`,
+    order.volume && `🧴 <b>Объём:</b> ${esc(order.volume)}`,
     order.composition && `🛒 <b>Состав:</b> ${esc(order.composition)}`,
     order.delivery && `🚚 <b>Доставка:</b> ${esc(order.delivery)}`,
     order.promo && `🎟 <b>Промокод:</b> ${esc(order.promo)}`,
@@ -181,6 +184,7 @@ async function sendEmail(order, leadTitle) {
     ['Телефон', order.phone],
     ['Email', order.email],
     ['Сумма', order.price ? `${order.price.toLocaleString('ru-RU')} ₽` : ''],
+    ['Объём', order.volume],
     ['Состав', order.composition],
     ['Доставка', order.delivery],
     ['Промокод', order.promo],

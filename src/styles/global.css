@@ -29,17 +29,19 @@ a { color: inherit; }
 
 /* ── nav ── */
 header.site { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 24px; padding: 18px 7%;
-  background: rgba(250,247,239,.92); backdrop-filter: blur(10px); border-bottom: 1px solid #e6dfcd; }
-.brand { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--forest); letter-spacing: .02em; text-decoration: none; line-height: 1; }
-.brand i { color: var(--gold); font-style: normal; }
+  background: rgba(34,42,26,.92); backdrop-filter: blur(10px); border-bottom: 1px solid #3a432b; }
+/* лого в цветах Банка Казани: Eco — зелёный, Premi — фиолетовый (эксперимент) */
+:root { --kz-green: #5cc42c; --kz-violet: #9c2d8e; }
+.brand { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--kz-green); letter-spacing: .02em; text-decoration: none; line-height: 1; }
+.brand i { color: var(--kz-violet); font-style: normal; }
 .brand small { display: block; font-family: var(--sans); font-size: 8.5px; letter-spacing: .2em; color: var(--gold-d); font-weight: 700; text-transform: uppercase; margin-top: 3px; }
 nav.main { margin: 0 auto; display: flex; gap: 34px; }
-nav.main a { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #55603c; text-decoration: none; font-weight: 600; transition: .2s; }
-nav.main a:hover, nav.main a[aria-current="page"] { color: var(--gold-d); }
-.nav-cta { border: 1.4px solid var(--olive); color: var(--olive); padding: 10px 22px; border-radius: 2px; text-decoration: none; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; transition: .25s; white-space: nowrap; }
-.nav-cta:hover { background: var(--olive); color: var(--bone); }
+nav.main a { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #cfcab5; text-decoration: none; font-weight: 600; transition: .2s; }
+nav.main a:hover, nav.main a[aria-current="page"] { color: var(--gold); }
+.nav-cta { border: 1.4px solid #6f7a52; color: var(--bone); padding: 10px 22px; border-radius: 2px; text-decoration: none; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; transition: .25s; white-space: nowrap; }
+.nav-cta:hover { border-color: var(--gold); color: var(--gold); }
 .burger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; padding: 6px; }
-.burger span { width: 24px; height: 2px; background: var(--forest); display: block; transition: .25s; }
+.burger span { width: 24px; height: 2px; background: var(--bone); display: block; transition: .25s; }
 
 /* ── buttons ── */
 .btn { display: inline-block; padding: 16px 34px; border-radius: 2px; text-decoration: none; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; transition: .25s; cursor: pointer; border: none; font-family: var(--sans); }
@@ -135,6 +137,13 @@ section { padding: 90px 7%; }
 .pc .foot { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #eee5d2; padding-top: 16px; }
 .pc .price b { font-family: var(--serif); font-size: 26px; color: var(--forest); }
 .pc .price s { color: #c3b89a; font-size: 14px; margin-left: 7px; }
+.pc .price .per-vol { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #b6ab8e; margin-top: 2px; }
+/* выбор объёма на карточке товара */
+.pd-vol { margin: 22px 0 6px; }
+.pd-vol .vol-label { display: block; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--olive); margin-bottom: 10px; }
+.pd-vol .vol-opts { display: flex; gap: 10px; flex-wrap: wrap; }
+.pd-vol .vol-opts span { font-size: 13px; font-weight: 700; color: var(--olive); border: 1.3px solid #d9cfb4; background: #fff; border-radius: 30px; padding: 8px 16px; }
+.pd-vol .vol-note { font-size: 12.5px; color: var(--mute); margin-top: 10px; }
 .pc .add { background: transparent; border: 1.3px solid var(--gold-d); color: var(--gold-d); padding: 10px 18px;
   font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 2px; transition: .25s; white-space: nowrap; }
 .pc .add:hover { background: var(--gold-d); color: #fff; }
@@ -189,6 +198,7 @@ section { padding: 90px 7%; }
 .pd-price b { font-family: var(--serif); font-size: 40px; color: var(--forest); }
 .pd-price s { color: #c3b89a; font-size: 20px; }
 .pd-price .disc { color: #fff; background: var(--gold-d); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 30px; letter-spacing: .06em; }
+.pd-price .per-vol-lg { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
 .pd-info .desc { font-size: 15.5px; color: #4a4d3e; line-height: 1.8; margin-bottom: 28px; }
 .pd-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 .pd-note { margin-top: 26px; font-size: 13px; color: var(--mute); border-top: 1px solid #eadfc7; padding-top: 22px; line-height: 1.7; }
@@ -206,6 +216,25 @@ section { padding: 90px 7%; }
 .prose ul { margin: 0 0 18px 0; padding-left: 0; list-style: none; }
 .prose ul li { position: relative; padding-left: 26px; margin-bottom: 12px; font-size: 15px; color: #4a4d3e; line-height: 1.7; }
 .prose ul li::before { content: ''; position: absolute; left: 0; top: 11px; width: 10px; height: 10px; border: 1.5px solid var(--gold); border-radius: 50%; }
+
+/* ── документы ── */
+.docs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; max-width: 900px; margin: 0 auto; }
+.doc-card { display: block; background: #fff; border: 1px solid #e6dcc2; border-radius: 4px; padding: 16px; text-decoration: none; color: inherit; transition: .25s; }
+.doc-card:hover { border-color: var(--gold); box-shadow: 0 18px 40px rgba(40,48,26,.12); transform: translateY(-4px); }
+.doc-card img { width: 100%; height: 340px; object-fit: cover; object-position: top; border: 1px solid #eee5d2; border-radius: 3px; background: #fff; }
+.doc-cap { display: block; margin-top: 14px; font-size: 13px; color: var(--mute); line-height: 1.5; }
+.doc-cap b { display: block; font-family: var(--serif); font-size: 18px; color: var(--forest); margin-bottom: 4px; }
+.deliver-kremlin { max-width: 900px; margin: 56px auto 0; background: #fff; border: 1px solid #e6dcc2; border-left: 3px solid var(--gold); border-radius: 4px; padding: 30px 32px; }
+.deliver-kremlin h3 { font-family: var(--serif); font-size: 24px; color: var(--forest); margin-bottom: 10px; }
+.deliver-kremlin p { font-size: 14.5px; color: var(--mute); line-height: 1.7; margin-bottom: 16px; }
+.deliver-kremlin ul { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 24px; }
+.deliver-kremlin li { position: relative; padding-left: 22px; font-size: 14.5px; color: #4a4d3e; line-height: 1.6; }
+.deliver-kremlin li::before { content: ''; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border: 1.5px solid var(--gold); border-radius: 50%; }
+@media (max-width: 760px) {
+  .docs-grid { grid-template-columns: 1fr; }
+  .deliver-kremlin ul { grid-template-columns: 1fr; }
+  .deliver-kremlin { padding: 24px 20px; }
+}
 
 /* ── FAQ accordion ── */
 .faq { max-width: 820px; margin: 0 auto; }
@@ -298,9 +327,9 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
   .hero-accent p { font-size: 16.5px; }
   .page-hero h1 { font-size: 36px; }
   .head h2 { font-size: 34px; }
-  nav.main { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--paper); border-bottom: 1px solid #e6dfcd; padding: 8px 7%; margin: 0; }
+  nav.main { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--forest); border-bottom: 1px solid #3a432b; padding: 8px 7%; margin: 0; }
   nav.main.open { display: flex; }
-  nav.main a { padding: 14px 0; border-bottom: 1px solid #eee5d2; }
+  nav.main a { padding: 14px 0; border-bottom: 1px solid #3a432b; }
   header.site { position: sticky; flex-wrap: wrap; }
   .burger { display: flex; margin-left: auto; }
   .nav-cta { display: none; }

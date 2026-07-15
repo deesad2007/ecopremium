@@ -4,6 +4,7 @@ const { product } = Astro.props;
 const { id, name, price, oldPrice, short, art, image, badges = [] } = product;
 const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
 const hasPhoto = image && !image.includes('...');
+const baseVolume = '100 мл';
 ---
 <article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
@@ -18,7 +19,10 @@ const hasPhoto = image && !image.includes('...');
     <h3><a href={`/product/${id}`} style="text-decoration:none;color:inherit">{name}</a></h3>
     <div class="desc">{short}</div>
     <div class="foot">
-      <div class="price"><b>{price.toLocaleString('ru-RU')} ₽</b>{oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}</div>
+      <div class="price">
+        <b>{price.toLocaleString('ru-RU')} ₽</b>{oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}
+        <span class="per-vol">за {baseVolume}</span>
+      </div>
       <button class="add" data-order data-product={name} data-price={price}>Заказать</button>
     </div>
   </div>

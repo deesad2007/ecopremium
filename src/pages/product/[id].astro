@@ -13,6 +13,7 @@ const { id, name, price, oldPrice, description, art, image, badges = [] } = prod
 const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
 const hasPhoto = image && !image.includes('...');
 const related = data.products.filter((p) => p.id !== id).slice(0, 3);
+const volumes = data.volumes || ['100 мл'];
 ---
 <Base title={`${name} — EcoPremi`} description={product.short}>
   <section style="padding-top:48px">
@@ -29,10 +30,16 @@ const related = data.products.filter((p) => p.id !== id).slice(0, 3);
         </div>
         <div class="pd-price">
           <b>{price.toLocaleString('ru-RU')} ₽</b>
+          <span class="per-vol-lg">за {volumes[0]}</span>
           {oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}
           {disc > 0 && <span class="disc">−{disc}%</span>}
         </div>
         <p class="desc">{description}</p>
+        <div class="pd-vol">
+          <span class="vol-label">Объём</span>
+          <div class="vol-opts">{volumes.map((v) => <span>{v}</span>)}</div>
+          <div class="vol-note">Объём выбирается при оформлении заявки — менеджер подтвердит итоговую стоимость.</div>
+        </div>
         <div class="pd-actions">
           <button class="btn btn-g" data-order data-product={name} data-price={price}>Заказать</button>
           <a href="/delivery" class="btn btn-dark" style="color:var(--olive)">Доставка и оплата</a>
