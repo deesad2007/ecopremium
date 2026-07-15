@@ -148,6 +148,19 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
+  // выбор объёма прямо на карточке каталога -> пересчёт цены и данных кнопки
+  document.addEventListener('change', (e) => {
+    const sel = e.target.closest('.js-card-vol');
+    if (!sel) return;
+    const card = sel.closest('.pc');
+    const opt = sel.selectedOptions[0];
+    const price = Number(opt.dataset.price);
+    card.querySelector('.js-card-price').innerHTML = nbsp(price) + ' ₽';
+    const btn = card.querySelector('[data-order]');
+    btn.dataset.price = String(price);
+    btn.dataset.volume = sel.value;
+  });
+
   // Промокод — заглушка (реальная проверка появится при подключении Робокассы/CRM)
   document.getElementById('promoBtn')?.addEventListener('click', () => {
     const note = document.getElementById('promoNote');
