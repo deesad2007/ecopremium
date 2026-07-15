@@ -148,17 +148,18 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-  // выбор объёма прямо на карточке каталога -> пересчёт цены и данных кнопки
-  document.addEventListener('change', (e) => {
-    const sel = e.target.closest('.js-card-vol');
-    if (!sel) return;
-    const card = sel.closest('.pc');
-    const opt = sel.selectedOptions[0];
-    const price = Number(opt.dataset.price);
+  // выбор объёма на карточке каталога одним кликом -> пересчёт цены и данных кнопки
+  document.addEventListener('click', (e) => {
+    const volBtn = e.target.closest('.card-vol-btn');
+    if (!volBtn) return;
+    const card = volBtn.closest('.pc');
+    card.querySelectorAll('.card-vol-btn').forEach((b) => b.classList.remove('active'));
+    volBtn.classList.add('active');
+    const price = Number(volBtn.dataset.price);
     card.querySelector('.js-card-price').innerHTML = nbsp(price) + ' ₽';
     const btn = card.querySelector('[data-order]');
     btn.dataset.price = String(price);
-    btn.dataset.volume = sel.value;
+    btn.dataset.volume = volBtn.textContent.trim();
   });
 
   // Промокод — заглушка (реальная проверка появится при подключении Робокассы/CRM)

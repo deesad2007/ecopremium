@@ -6,7 +6,7 @@ const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
 const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 ---
-<article class="pc" data-category={product.category} data-variants={JSON.stringify(variants)}>
+<article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
     {badges.includes('Органик ГОСТ') && (
       <span class="organic"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/></svg>Органик ГОСТ</span>
@@ -19,11 +19,10 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     <div class="desc">{short}</div>
 
     {variants.length > 1 && (
-      <div class="card-vol">
-        <span class="card-vol-label">Объём</span>
-        <select class="js-card-vol" aria-label={`Объём — ${name}`}>
-          {variants.map((v) => <option value={v.volume} data-price={v.price}>{v.volume}</option>)}
-        </select>
+      <div class="card-vols">
+        {variants.map((v, i) => (
+          <button type="button" class={`card-vol-btn${i === 0 ? ' active' : ''}`} data-price={v.price}>{v.volume}</button>
+        ))}
       </div>
     )}
 
@@ -32,6 +31,5 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
       <button class="add" data-order data-product={name} data-price={base.price}
         data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
     </div>
-    <a href={`/product/${id}`} class="pc-more">Подробнее о товаре</a>
   </div>
 </article>
