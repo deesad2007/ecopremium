@@ -33,13 +33,9 @@
           <label for="fEmail">Email</label>
           <input type="email" id="fEmail" name="email" autocomplete="email" placeholder="для дубля заявки" />
         </div>
-        <div class="field">
+        <div class="field" id="volField" hidden>
           <label for="fVolume">Объём</label>
-          <select id="fVolume" name="volume">
-            <option value="100 мл">100 мл</option>
-            <option value="250 мл">250 мл</option>
-            <option value="500 мл">500 мл</option>
-          </select>
+          <select id="fVolume" name="volume"></select>
         </div>
         <div class="field">
           <label for="fComposition">Состав заказа</label>
@@ -86,21 +82,48 @@
   const sumName = document.getElementById('orderSummaryName');
   const sumPrice = document.getElementById('orderSummaryPrice');
 
-  function openModal(product, price) {
+  const volField = document.getElementById('volField');
+  const volSelect = document.getElementById('fVolume');
+  const nbsp = (n) => Number(n).toLocaleString('ru-RU').replace(/ /g, ' ').replace(/ /g, ' ');
+
+  // пересчёт цены в сводке при смене объёма
+  function applyPrice(product, price, volume) {
+    document.getElementById('fPrice').value = price || '';
+    sumPrice.innerHTML = price ? nbsp(price) + ' ₽' : '';
+    sumName.textContent = volume ? `${product} · ${volume}` : product;
+    document.getElementById('fComposition').value = price
+      ? `${product}${volume ? ' — ' + volume : ''} — ${nbsp(price)} ₽`
+      : product;
+  }
+
+  function openModal(product, price, volume, variantsRaw) {
     form.reset();
     msg.className = 'form-msg';
     document.getElementById('fProduct').value = product || '';
-    document.getElementById('fPrice').value = price || '';
     document.getElementById('fPage').value = location.pathname;
-    if (product) {
-      summary.hidden = false;
-      sumName.textContent = product;
-      sumPrice.textContent = price ? Number(price).toLocaleString('ru-RU') + ' ₽' : '';
-      document.getElementById('fComposition').value = price
-        ? `${product} — ${Number(price).toLocaleString('ru-RU')} ₽` : product;
+
+    let variants = [];
+    try { variants = variantsRaw ? JSON.parse(variantsRaw) : []; } catch {}
+
+    if (variants.length) {
+      volSelect.innerHTML = variants
+        .map((v) => `<option value="${v.volume}" data-price="${v.price}">${v.volume} — ${nbsp(v.price)} ₽</option>`)
+        .join('');
+      const start = variants.find((v) => v.volume === volume) || variants[0];
+      volSelect.value = start.volume;
+      volField.hidden = false;
+      applyPrice(product, start.price, start.volume);
+      volSelect.onchange = () => {
+        const v = variants.find((x) => x.volume === volSelect.value);
+        if (v) applyPrice(product, v.price, v.volume);
+      };
     } else {
-      summary.hidden = true;
+      volField.hidden = true;
+      volSelect.onchange = null;
+      applyPrice(product, price, volume);
     }
+
+    summary.hidden = !product;
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
     setTimeout(() => document.getElementById('fName').focus(), 50);
@@ -114,7 +137,12 @@
     const trigger = e.target.closest('[data-order]');
     if (trigger) {
       e.preventDefault();
-      openModal(trigger.getAttribute('data-product'), trigger.getAttribute('data-price'));
+      openModal(
+        trigger.getAttribute('data-product'),
+        trigger.getAttribute('data-price'),
+        trigger.getAttribute('data-volume'),
+        trigger.getAttribute('data-variants')
+      );
     }
     if (e.target.id === 'orderClose' || e.target === modal) closeModal();
   });

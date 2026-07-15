@@ -9,11 +9,11 @@ export function getStaticPaths() {
 }
 
 const { product } = Astro.props;
-const { id, name, price, oldPrice, description, art, image, badges = [] } = product;
-const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+const { id, name, description, art, image, badges = [], variants = [] } = product;
+const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
 const related = data.products.filter((p) => p.id !== id).slice(0, 3);
-const volumes = data.volumes || ['100 мл'];
+const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 ---
 <Base title={`${name} — EcoPremi`} description={product.short}>
   <section style="padding-top:48px">
@@ -29,19 +29,22 @@ const volumes = data.volumes || ['100 мл'];
           <span>Артикул {id}</span>
         </div>
         <div class="pd-price">
-          <b>{price.toLocaleString('ru-RU')} ₽</b>
-          <span class="per-vol-lg">за {volumes[0]}</span>
-          {oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}
-          {disc > 0 && <span class="disc">−{disc}%</span>}
+          <b id="pdPrice">{fmt(base.price)}&nbsp;₽</b>
+          <span class="per-vol-lg" id="pdPerVol">за {base.volume}</span>
         </div>
         <p class="desc">{description}</p>
         <div class="pd-vol">
           <span class="vol-label">Объём</span>
-          <div class="vol-opts">{volumes.map((v) => <span>{v}</span>)}</div>
-          <div class="vol-note">Объём выбирается при оформлении заявки — менеджер подтвердит итоговую стоимость.</div>
+          <div class="vol-opts" id="pdVolOpts">
+            {variants.map((v, i) => (
+              <button type="button" class={`vol-btn${i === 0 ? ' active' : ''}`}
+                data-volume={v.volume} data-price={v.price}>{v.volume}</button>
+            ))}
+          </div>
         </div>
         <div class="pd-actions">
-          <button class="btn btn-g" data-order data-product={name} data-price={price}>Заказать</button>
+          <button class="btn btn-g" id="pdOrder" data-order data-product={name} data-price={base.price}
+            data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
           <a href="/delivery" class="btn btn-dark" style="color:var(--olive)">Доставка и оплата</a>
         </div>
         <div class="pd-note">
@@ -61,3 +64,25 @@ const volumes = data.volumes || ['100 мл'];
     </div>
   </section>
 </Base>
+
+<script>
+  // переключение объёма -> пересчёт цены
+  const opts = document.getElementById('pdVolOpts');
+  const priceEl = document.getElementById('pdPrice');
+  const perVolEl = document.getElementById('pdPerVol');
+  const orderBtn = document.getElementById('pdOrder');
+  const nbsp = (s) => s.replace(/ /g, ' ').replace(/ /g, ' ');
+
+  opts?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.vol-btn');
+    if (!btn) return;
+    opts.querySelectorAll('.vol-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const price = Number(btn.dataset.price);
+    const volume = btn.dataset.volume;
+    priceEl.innerHTML = nbsp(price.toLocaleString('ru-RU')) + ' ₽';
+    perVolEl.textContent = 'за ' + volume;
+    orderBtn.dataset.price = String(price);
+    orderBtn.dataset.volume = volume;
+  });
+</script>

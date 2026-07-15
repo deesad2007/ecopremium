@@ -1,14 +1,13 @@
 ---
 import Bottle from './Bottle.astro';
 const { product } = Astro.props;
-const { id, name, price, oldPrice, short, art, image, badges = [] } = product;
-const disc = oldPrice ? Math.round((1 - price / oldPrice) * 100) : 0;
+const { id, name, art, image, badges = [], short, variants = [] } = product;
+const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
-const baseVolume = '100 мл';
+const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 ---
 <article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
-    {disc > 0 && <span class="disc">−{disc}%</span>}
     {badges.includes('Органик ГОСТ') && (
       <span class="organic"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/></svg>Органик ГОСТ</span>
     )}
@@ -20,10 +19,11 @@ const baseVolume = '100 мл';
     <div class="desc">{short}</div>
     <div class="foot">
       <div class="price">
-        <b>{price.toLocaleString('ru-RU')} ₽</b>{oldPrice && <s>{oldPrice.toLocaleString('ru-RU')} ₽</s>}
-        <span class="per-vol">за {baseVolume}</span>
+        <b>{fmt(base.price)}&nbsp;₽</b>
+        <span class="per-vol">за {base.volume}</span>
       </div>
-      <button class="add" data-order data-product={name} data-price={price}>Заказать</button>
+      <button class="add" data-order data-product={name} data-price={base.price}
+        data-variants={JSON.stringify(variants)}>Заказать</button>
     </div>
   </div>
 </article>
