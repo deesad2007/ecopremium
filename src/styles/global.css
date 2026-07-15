@@ -29,7 +29,7 @@ a { color: inherit; }
 
 /* ── nav ── */
 header.site { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 24px; padding: 18px 7%;
-  background: rgba(34,42,26,.92); backdrop-filter: blur(10px); border-bottom: 1px solid #3a432b; }
+  background: rgba(23,19,29,.92); backdrop-filter: blur(10px); border-bottom: 1px solid #2e2738; }
 /* лого в цветах Банка Казани: Eco — зелёный, Premi — фиолетовый (эксперимент) */
 :root { --kz-green: #5cc42c; --kz-violet: #9c2d8e; }
 .brand { font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--kz-green); letter-spacing: .02em; text-decoration: none; line-height: 1; }
@@ -236,7 +236,7 @@ section { padding: 90px 7%; }
 .pd-note { margin-top: 26px; font-size: 13px; color: var(--mute); border-top: 1px solid #eadfc7; padding-top: 22px; line-height: 1.7; }
 
 /* ── generic prose page ── */
-.page-hero { background: var(--forest); color: var(--bone); padding: 64px 7% 56px; text-align: center; }
+.page-hero { background: var(--hero-bg); color: var(--bone); padding: 64px 7% 56px; text-align: center; }
 .page-hero .ey { color: var(--gold); margin-bottom: 14px; }
 .page-hero h1 { font-family: var(--serif); font-size: 50px; font-weight: 700; line-height: 1.08; }
 .page-hero h1 em { font-style: italic; color: var(--gold); }
