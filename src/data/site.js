@@ -1,7 +1,9 @@
 // Сквозные данные сайта: контакты и счётчики аналитики.
 export const contacts = {
-  phone: '+7 (495) 308-46-12',
-  phoneRaw: '+74953084612',
+  phone: '+7 996-005-6765',
+  phoneRaw: '+79960056765',
+  phone2: '+7 916-414-0392',
+  phone2Raw: '+79164140392',
   whatsapp: 'https://wa.me/79654128540',
   whatsappRaw: '79654128540',
   telegram: 'https://t.me/EkoPremi',
