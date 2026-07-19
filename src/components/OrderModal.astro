@@ -188,7 +188,7 @@
     submit.textContent = 'Отправляем…';
     try {
       const data = Object.fromEntries(new FormData(form).entries());
-      const res = await fetch('/.netlify/functions/order', {
+      const res = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

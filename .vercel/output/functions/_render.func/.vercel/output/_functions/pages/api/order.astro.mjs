@@ -1,36 +1,39 @@
+export { renderers } from '../../renderers.mjs';
+
 // ─────────────────────────────────────────────────────────────
-// EcoPremium — обработчик заявки с сайта.
+// EcoPremium — обработчик заявки с сайта (нативный Astro API route,
+// работает одинаково на Vercel, Netlify и любом другом адаптере).
 // Один вход → параллельно: (1) amoCRM lead+contact, (2) Telegram, (3) email.
-// Все секреты только в переменных окружения Netlify (см. .env.example).
+// Все секреты только в переменных окружения хостинга (см. .env.example).
 // Каждый канал необязателен: если ключи не заданы — канал пропускается,
 // заявка уходит в остальные. Если amoCRM упал — Telegram и email всё равно сработают,
 // чтобы лид не потерялся.
 // ─────────────────────────────────────────────────────────────
 
-const json = (statusCode, body) => ({
-  statusCode,
-  headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-  body: JSON.stringify(body),
-});
+const prerender = false;
 
 const esc = (s) => String(s || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 
-export const handler = async (event) => {
-  if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
+const json = (body, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
 
+async function POST({ request }) {
   let data;
   try {
-    data = JSON.parse(event.body || '{}');
+    data = await request.json();
   } catch {
-    return json(400, { error: 'Invalid JSON' });
+    return json({ error: 'Invalid JSON' }, 400);
   }
 
   // honeypot — молча принимаем, ничего не делаем
-  if (data.company) return json(200, { ok: true });
+  if (data.company) return json({ ok: true });
 
   const name = (data.name || '').trim();
   const phone = (data.phone || '').trim();
-  if (!name || !phone) return json(400, { error: 'Имя и телефон обязательны' });
+  if (!name || !phone) return json({ error: 'Имя и телефон обязательны' }, 400);
 
   const order = {
     name,
@@ -65,14 +68,14 @@ export const handler = async (event) => {
   });
 
   const anyDelivered = Object.values(report).some((r) => r && r.ok);
-  // Для показа на бесплатном поддомене без ключей считаем заявку принятой,
-  // даже если каналы не настроены (skipped) — лид логируется в Netlify Functions log.
+  // Для показа без ключей считаем заявку принятой, даже если каналы не настроены
+  // (skipped) — лид логируется в логах функций хостинга.
   if (!anyDelivered) {
     console.log('[order] заявка получена, активных каналов нет (демо-режим):', JSON.stringify(order));
   }
 
-  return json(200, { ok: true, channels: report });
-};
+  return json({ ok: true, channels: report });
+}
 
 // ── amoCRM ──
 async function sendToAmoCRM(order, leadTitle) {
@@ -211,3 +214,13 @@ async function sendEmail(order, leadTitle) {
   });
   return { ok: true };
 }
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  POST,
+  prerender
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

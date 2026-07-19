@@ -12,10 +12,12 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/vercel": "^7.8.2",
     "astro": "^4.16.18",
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {
-    "netlify-cli": "^17.38.1"
+    "netlify-cli": "^17.38.1",
+    "vercel": "^56.3.2"
   }
 }

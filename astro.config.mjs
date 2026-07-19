@@ -1,9 +1,12 @@
 import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
 
-// Статический сайт. Формы заказа обрабатываются Netlify-функцией (/.netlify/functions/order).
+// Сайт статический (output: 'hybrid'), кроме /api/order — она рендерится
+// на сервере (Vercel Function), см. `export const prerender = false` в файле роута.
 export default defineConfig({
-  site: 'https://ekopremium.netlify.app',
-  output: 'static',
+  site: 'https://ekopremium.vercel.app',
+  output: 'hybrid',
+  adapter: vercel(),
   build: {
     format: 'directory',
   },

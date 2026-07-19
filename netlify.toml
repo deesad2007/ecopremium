@@ -1,15 +1,6 @@
+# Проект сейчас деплоится на Vercel (см. astro.config.mjs, adapter @astrojs/vercel/serverless).
+# Этот файл оставлен на случай возврата к Netlify — тогда нужно сменить адаптер
+# на @astrojs/netlify в astro.config.mjs.
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
-
-[functions]
-  node_bundler = "esbuild"
-
-[[redirects]]
-  from = "/api/order"
-  to = "/.netlify/functions/order"
-  status = 200
-
-# SPA-подобный фоллбэк не нужен — сайт многостраничный статический.
-# Astro генерирует 404.html автоматически.
