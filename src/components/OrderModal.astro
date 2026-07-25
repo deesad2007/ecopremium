@@ -148,6 +148,10 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
+  // доступ извне (например, из корзины) — форма и её поля не меняются,
+  // просто ещё один способ вызвать тот же openModal
+  window.__ecoOpenOrder = openModal;
+
   // выбор объёма на карточке каталога одним кликом -> пересчёт цены и данных кнопки
   document.addEventListener('click', (e) => {
     const volBtn = e.target.closest('.card-vol-btn');

@@ -45,6 +45,8 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
         <div class="pd-actions">
           <button class="btn btn-g" id="pdOrder" data-order data-product={name} data-price={base.price}
             data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
+          <button type="button" class="btn btn-dark js-add-cart" style="color:var(--olive)"
+            data-id={id} data-name={name} data-image={hasPhoto ? image : ''}>В корзину</button>
           <a href="/delivery" class="btn btn-dark" style="color:var(--olive)">Доставка и оплата</a>
         </div>
         <div class="pd-note">

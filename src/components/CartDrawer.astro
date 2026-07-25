@@ -1,0 +1,164 @@
+---
+// Корзина: хранится в localStorage, не трогает форму заявки (OrderModal) —
+// при оформлении просто вызывает её существующий openModal с агрегированными данными.
+---
+<div class="cart-backdrop" id="cartBackdrop"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Корзина">
+  <div class="cart-head">
+    <h3>Корзина</h3>
+    <button class="x" id="cartClose" aria-label="Закрыть">&times;</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty" id="cartEmpty">Корзина пуста. Добавьте масла из каталога.</div>
+    <div class="cart-items" id="cartItems"></div>
+  </div>
+  <div class="cart-foot" id="cartFoot" hidden>
+    <div class="cart-total"><span>Итого</span><b id="cartTotal">0 ₽</b></div>
+    <button class="btn btn-g" id="cartCheckout" style="width:100%">Оформить заказ</button>
+  </div>
+</aside>
+
+<script>
+  const KEY = 'ecopremium_cart';
+  const nbsp = (n) => Number(n).toLocaleString('ru-RU').replace(/ /g, ' ').replace(/ /g, ' ');
+
+  const getCart = () => {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }
+  };
+  const saveCart = (cart) => {
+    localStorage.setItem(KEY, JSON.stringify(cart));
+    render();
+    document.dispatchEvent(new CustomEvent('cart:update', { detail: { count: cartCount(cart) } }));
+  };
+  const cartCount = (cart) => cart.reduce((s, i) => s + i.qty, 0);
+  const cartTotal = (cart) => cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+  function add({ id, name, volume, price, image }) {
+    const cart = getCart();
+    const existing = cart.find((i) => i.id === id && i.volume === volume);
+    if (existing) existing.qty += 1;
+    else cart.push({ id, name, volume, price: Number(price), image, qty: 1 });
+    saveCart(cart);
+    open();
+  }
+  function setQty(index, qty) {
+    const cart = getCart();
+    if (!cart[index]) return;
+    if (qty < 1) cart.splice(index, 1);
+    else cart[index].qty = qty;
+    saveCart(cart);
+  }
+  function remove(index) {
+    const cart = getCart();
+    cart.splice(index, 1);
+    saveCart(cart);
+  }
+
+  const backdrop = document.getElementById('cartBackdrop');
+  const drawer = document.getElementById('cartDrawer');
+  function open() {
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function render() {
+    const cart = getCart();
+    const itemsEl = document.getElementById('cartItems');
+    const emptyEl = document.getElementById('cartEmpty');
+    const footEl = document.getElementById('cartFoot');
+    const totalEl = document.getElementById('cartTotal');
+
+    if (!cart.length) {
+      itemsEl.innerHTML = '';
+      emptyEl.hidden = false;
+      footEl.hidden = true;
+    } else {
+      emptyEl.hidden = true;
+      footEl.hidden = false;
+      itemsEl.innerHTML = cart.map((item, i) => `
+        <div class="cart-item">
+          <div class="ci-img">${item.image ? `<img src="${item.image}" alt="" loading="lazy" />` : ''}</div>
+          <div class="ci-info">
+            <div class="ci-name">${item.name}</div>
+            <div class="ci-vol">${item.volume || ''}</div>
+            <div class="ci-row">
+              <div class="ci-qty">
+                <button type="button" class="ci-minus" data-i="${i}">−</button>
+                <span>${item.qty}</span>
+                <button type="button" class="ci-plus" data-i="${i}">+</button>
+              </div>
+              <b class="ci-price">${nbsp(item.price * item.qty)} ₽</b>
+            </div>
+          </div>
+          <button type="button" class="ci-remove" data-i="${i}" aria-label="Удалить">&times;</button>
+        </div>
+      `).join('');
+    }
+    totalEl.textContent = nbsp(cartTotal(cart)) + ' ₽';
+
+    // счётчик в шапке
+    document.querySelectorAll('.cart-badge').forEach((b) => {
+      const c = cartCount(cart);
+      b.textContent = String(c);
+      b.hidden = c === 0;
+    });
+  }
+
+  document.getElementById('cartClose')?.addEventListener('click', close);
+  backdrop?.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  document.getElementById('cartItems')?.addEventListener('click', (e) => {
+    const target = e.target.closest('button');
+    if (!target) return;
+    const i = Number(target.dataset.i);
+    const cart = getCart();
+    if (target.classList.contains('ci-plus')) setQty(i, cart[i].qty + 1);
+    else if (target.classList.contains('ci-minus')) setQty(i, cart[i].qty - 1);
+    else if (target.classList.contains('ci-remove')) remove(i);
+  });
+
+  document.getElementById('cartCheckout')?.addEventListener('click', () => {
+    const cart = getCart();
+    if (!cart.length) return;
+    const productSummary = cart.length === 1
+      ? cart[0].name
+      : `Корзина (${cartCount(cart)} ${cartCount(cart) === 1 ? 'товар' : 'товара'})`;
+    const composition = cart
+      .map((i) => `${i.name} — ${i.volume ? i.volume + ' — ' : ''}${i.qty} шт. × ${nbsp(i.price)} ₽ = ${nbsp(i.price * i.qty)} ₽`)
+      .join('\n');
+    close();
+    // используем уже существующую форму заявки, ничего в ней не меняя
+    if (typeof window.__ecoOpenOrder === 'function') {
+      window.__ecoOpenOrder(productSummary, cartTotal(cart), '', null);
+      const compEl = document.getElementById('fComposition');
+      if (compEl) compEl.value = composition;
+    }
+  });
+
+  window.EcoCart = { add, open, close, render, get: getCart };
+  document.addEventListener('DOMContentLoaded', render);
+  render();
+
+  // кнопка «в корзину» на карточке/странице товара — берёт текущий
+  // выбранный объём/цену с соседней кнопки «Заказать» (уже держит их в актуальном виде)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-add-cart');
+    if (!btn) return;
+    const card = btn.closest('.pc, .pd-info') || document;
+    const orderBtn = card.querySelector('[data-order]');
+    add({
+      id: btn.dataset.id,
+      name: btn.dataset.name,
+      image: btn.dataset.image,
+      volume: orderBtn?.dataset.volume || '',
+      price: orderBtn?.dataset.price || 0,
+    });
+  });
+</script>

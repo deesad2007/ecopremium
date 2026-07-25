@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import QuickContacts from '../components/QuickContacts.astro';
 import OrderModal from '../components/OrderModal.astro';
+import CartDrawer from '../components/CartDrawer.astro';
 import Analytics from '../components/Analytics.astro';
 
 const {
@@ -44,5 +45,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site || 'https://ekopremium.
   </div>
 
   <OrderModal />
+  <CartDrawer />
 </body>
 </html>
