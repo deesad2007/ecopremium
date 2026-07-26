@@ -6,7 +6,7 @@ import data from '../data/products.json';
 
 const products = data.products;
 const usp = [
-  { t: 'Поставщик Московского Кремля', d: 'Контроль качества в лаборатории Управделами Президента РФ.', accent: 'violet' },
+  { t: 'Поставщик Московского Кремля', d: 'Качество, проверенное в лаборатории Управделами Президента РФ', accent: 'violet' },
   { t: 'Единственный производитель органического масла в России', d: 'Органический сертификат ГОСТ 33980-2016, №065 «Роскачество», Госреестр Минсельхоза.', accent: 'violet' },
   { t: 'Цены ниже конкурентов', d: 'Прямые поставки органического сырья от производителя, без посредников.', accent: 'violet' },
 ];
@@ -46,14 +46,14 @@ const usp = [
     <div class="section-inner">
       <div class="head">
         <div class="lbl ey">Каталог</div>
-        <h2>Масла, отжатые <em>сегодня для вас</em></h2>
         <div class="rule"></div>
       </div>
       <div class="grid">
         {products.map((p) => <ProductCard product={p} />)}
       </div>
       <div style="text-align:center;margin-top:48px">
-        <a href="/catalog" class="btn btn-dark">Весь каталог</a>
+        <a href="/catalog" class="btn btn-dark">Все масла</a>
+        <a href="/food" class="btn btn-dark" style="margin-left:12px">Продукты питания</a>
       </div>
     </div>
   </section>
@@ -85,7 +85,7 @@ const usp = [
     <div class="section-inner">
       <div class="head">
         <div class="lbl ey">Почему мы</div>
-        <h2>Чем мы <em>отличаемся</em></h2>
+        <h2 class="h2-green">Чем мы отличаемся</h2>
         <div class="rule"></div>
       </div>
       <ul class="usp">

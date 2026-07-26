@@ -1,6 +1,7 @@
 ---
 // Корзина: хранится в localStorage, не трогает форму заявки (OrderModal) —
 // при оформлении просто вызывает её существующий openModal с агрегированными данными.
+import { discounts } from '../data/site.js';
 ---
 <div class="cart-backdrop" id="cartBackdrop"></div>
 <aside class="cart-drawer" id="cartDrawer" aria-label="Корзина">
@@ -13,14 +14,26 @@
     <div class="cart-items" id="cartItems"></div>
   </div>
   <div class="cart-foot" id="cartFoot" hidden>
+    <div class="cart-next" id="cartNext" hidden></div>
+    <div class="cart-sum" id="cartSubtotalRow" hidden><span>Сумма</span><span id="cartSubtotal">0 ₽</span></div>
+    <div class="cart-sum cart-disc" id="cartDiscountRow" hidden><span id="cartDiscountLabel">Скидка</span><span id="cartDiscount">0 ₽</span></div>
     <div class="cart-total"><span>Итого</span><b id="cartTotal">0 ₽</b></div>
     <button class="btn btn-g" id="cartCheckout" style="width:100%">Оформить заказ</button>
   </div>
 </aside>
 
-<script>
+<script define:vars={{ discountTiers: discounts }}>
   const KEY = 'ecopremium_cart';
   const nbsp = (n) => Number(n).toLocaleString('ru-RU').replace(/ /g, ' ').replace(/ /g, ' ');
+
+  // ── накопительная скидка от суммы заказа ──
+  const tiers = [...discountTiers].sort((a, b) => a.from - b.from);
+  const currentTier = (sum) => tiers.filter((t) => sum >= t.from).pop() || null;
+  const nextTier = (sum) => tiers.find((t) => sum < t.from) || null;
+  const discountAmount = (sum) => {
+    const t = currentTier(sum);
+    return t ? Math.round((sum * t.percent) / 100) : 0;
+  };
 
   const getCart = () => {
     try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }
@@ -100,7 +113,29 @@
         </div>
       `).join('');
     }
-    totalEl.textContent = nbsp(cartTotal(cart)) + ' ₽';
+    // итоги со скидкой
+    const sum = cartTotal(cart);
+    const disc = discountAmount(sum);
+    const tier = currentTier(sum);
+    const next = nextTier(sum);
+
+    document.getElementById('cartSubtotalRow').hidden = !disc;
+    document.getElementById('cartDiscountRow').hidden = !disc;
+    if (disc) {
+      document.getElementById('cartSubtotal').textContent = nbsp(sum) + ' ₽';
+      document.getElementById('cartDiscountLabel').textContent = `Скидка ${tier.percent}%`;
+      document.getElementById('cartDiscount').textContent = '−' + nbsp(disc) + ' ₽';
+    }
+
+    const nextEl = document.getElementById('cartNext');
+    if (next && cart.length) {
+      nextEl.hidden = false;
+      nextEl.textContent = `Добавьте ещё на ${nbsp(next.from - sum)} ₽ — и скидка ${next.percent}%`;
+    } else {
+      nextEl.hidden = true;
+    }
+
+    totalEl.textContent = nbsp(sum - disc) + ' ₽';
 
     // счётчик в шапке
     document.querySelectorAll('.cart-badge').forEach((b) => {
@@ -130,13 +165,21 @@
     const productSummary = cart.length === 1
       ? cart[0].name
       : `Корзина (${cartCount(cart)} ${cartCount(cart) === 1 ? 'товар' : 'товара'})`;
-    const composition = cart
-      .map((i) => `${i.name} — ${i.volume ? i.volume + ' — ' : ''}${i.qty} шт. × ${nbsp(i.price)} ₽ = ${nbsp(i.price * i.qty)} ₽`)
-      .join('\n');
+    const sum = cartTotal(cart);
+    const disc = discountAmount(sum);
+    const tier = currentTier(sum);
+    const lines = cart
+      .map((i) => `${i.name} — ${i.volume ? i.volume + ' — ' : ''}${i.qty} шт. × ${nbsp(i.price)} ₽ = ${nbsp(i.price * i.qty)} ₽`);
+    if (disc) {
+      lines.push(`Сумма: ${nbsp(sum)} ₽`);
+      lines.push(`Скидка ${tier.percent}%: −${nbsp(disc)} ₽`);
+      lines.push(`Итого: ${nbsp(sum - disc)} ₽`);
+    }
+    const composition = lines.join('\n');
     close();
     // используем уже существующую форму заявки, ничего в ней не меняя
     if (typeof window.__ecoOpenOrder === 'function') {
-      window.__ecoOpenOrder(productSummary, cartTotal(cart), '', null);
+      window.__ecoOpenOrder(productSummary, sum - disc, '', null);
       const compEl = document.getElementById('fComposition');
       if (compEl) compEl.value = composition;
     }

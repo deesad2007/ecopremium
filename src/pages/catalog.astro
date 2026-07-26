@@ -4,8 +4,7 @@ import ProductCard from '../components/ProductCard.astro';
 import Credentials from '../components/Credentials.astro';
 import data from '../data/products.json';
 
-const products = data.products;
-const categories = ['Все', ...new Set(products.map((p) => p.category))];
+const products = data.products.filter((p) => p.section === 'oils');
 ---
 <Base title="Каталог масел — EcoPremi" description="Каталог сыродавленных органических масел EcoPremi: льняное, тыквенное, конопляное. Ручной отжим, свежий отжим под заказ.">
   <section class="page-hero">
@@ -16,10 +15,9 @@ const categories = ['Все', ...new Set(products.map((p) => p.category))];
 
   <section>
     <div class="section-inner">
-      <div class="filters" id="filters">
-        {categories.map((c, i) => (
-          <button class={i === 0 ? 'active' : ''} data-filter={c}>{c}</button>
-        ))}
+      <div class="cat-tabs">
+        <a href="/catalog" class="cat-tab active">Масла</a>
+        <a href="/food" class="cat-tab">Продукты питания</a>
       </div>
       <div class="grid" id="catalogGrid">
         {products.map((p) => <ProductCard product={p} />)}
@@ -29,18 +27,3 @@ const categories = ['Все', ...new Set(products.map((p) => p.category))];
 
   <Credentials />
 </Base>
-
-<script>
-  const filters = document.getElementById('filters');
-  const cards = Array.from(document.querySelectorAll('#catalogGrid .pc'));
-  filters?.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    filters.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    const f = btn.dataset.filter;
-    cards.forEach((c) => {
-      c.style.display = f === 'Все' || c.dataset.category === f ? '' : 'none';
-    });
-  });
-</script>

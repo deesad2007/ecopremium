@@ -13,6 +13,15 @@ export const contacts = {
   freeDeliveryFrom: 10000,
 };
 
+// Система накопительных скидок от суммы заказа.
+// Пороги и проценты — ЗАГЛУШКА, согласовать с клиентом и поменять здесь.
+// Скидка считается по наибольшему достигнутому порогу.
+export const discounts = [
+  { from: 5000, percent: 5 },
+  { from: 10000, percent: 10 },
+  { from: 20000, percent: 15 },
+];
+
 // Счётчики перенесены с текущего сайта ekopremium.ru
 export const analytics = {
   yandexMetrika: '99571167',

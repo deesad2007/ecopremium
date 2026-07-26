@@ -8,9 +8,6 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 ---
 <article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
-    {badges.includes('Органик ГОСТ') && (
-      <span class="organic"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/></svg>Органик ГОСТ</span>
-    )}
     {hasPhoto ? <img src={image} alt={name} loading="lazy" /> : <Bottle art={art} />}
   </a>
   <div class="body">

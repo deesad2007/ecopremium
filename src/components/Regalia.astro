@@ -8,11 +8,12 @@ const items = [
     icon: 'kremlin',
     docs: [
       { src: '/img/docs/dogovor-kremlin.webp', label: 'Договор, стр. 1' },
-      { src: '/img/docs/dogovor-kremlin-podpisi.webp', label: 'Подписи и печати' },
+      { src: '/img/docs/dogovor-kremlin-str2.webp', label: 'Договор, стр. 2' },
     ],
   },
   {
-    t: 'Органический ГОСТ 33980-2016',
+    t: 'Органический ГОСТ',
+    tNum: '33980-2016',
     d: 'Сертификат соответствия №065 «Роскачество». Единственный производитель органического масла в России',
     icon: 'leaf',
     docs: [
@@ -36,7 +37,7 @@ const icons = {
       {items.map((it) => (
         <div class="regalia-card">
           <div class="medal"><svg viewBox="0 0 24 24" set:html={icons[it.icon]}></svg></div>
-          <h4>{it.t}</h4>
+          <h4>{it.t}{it.tNum && <> <span class="num">{it.tNum}</span></>}</h4>
           <p>{it.d}</p>
           <div class={`regalia-docs${it.docs.length > 1 ? ' multi' : ''}`}>
             {it.docs.map((doc) => (
