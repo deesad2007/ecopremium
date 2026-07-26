@@ -18,6 +18,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site || 'https://ekopremium.
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {/* Явно говорим браузеру, что сайт светлый — иначе Android Chrome (и другие браузеры
+      с «автотёмной темой») перекрашивает светлые элементы сам, ломая продуманную палитру. */}
+  <meta name="color-scheme" content="light" />
   <title>{title}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
