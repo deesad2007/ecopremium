@@ -2,7 +2,8 @@
    EcoPremium — глобальные стили
    Палитра и типографика взяты из концепта ecopremium_v2.html
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@300;400;500;600;700&display=swap');
+/* Шрифты подключаются в <head> (Base.astro) через <link>, не через @import —
+   @import в CSS блокирует рендер, пока не скачается и не распарсится сам файл шрифтов. */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -116,7 +117,7 @@ nav.main a:hover, nav.main a[aria-current="page"] { color: var(--gold); }
 .art .frame2 { position: absolute; inset: 9% 13%; border: 1px solid rgba(194,163,90,.22); }
 .art svg.bottle { position: relative; z-index: 2; filter: drop-shadow(0 30px 50px rgba(0,0,0,.45)); }
 /* реальное фото в герое — приглушено и затонировано под forest, чтобы не выбивалось */
-.art-photo { position: absolute; inset: 6% 10%; overflow: hidden; background: var(--forest); box-shadow: 0 34px 64px rgba(0,0,0,.5); }
+.art-photo { position: absolute; inset: 6% 10%; overflow: hidden; background: var(--hero-bg); box-shadow: 0 34px 64px rgba(0,0,0,.5); }
 .art-photo img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.88) brightness(.93) contrast(1.02); }
 .art-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(155deg, rgba(34,42,26,.12) 0%, rgba(34,42,26,.36) 66%, rgba(34,42,26,.72) 100%); }
@@ -198,7 +199,7 @@ section { padding: 90px 7%; }
 .filters button.active { background: var(--olive); border-color: var(--olive); color: var(--bone); }
 
 /* ── craft / vs ── */
-.craft { background: var(--forest); color: var(--bone); }
+.craft { background: var(--hero-bg); color: var(--bone); }
 .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; max-width: 920px; margin: 0 auto; }
 .vbox { padding: 38px 36px; border: 1px solid #3a432b; border-radius: 3px; background: rgba(255,255,255,.02); }
 .vbox.good { border-color: var(--gold); background: rgba(194,163,90,.06); }
@@ -211,8 +212,11 @@ section { padding: 90px 7%; }
 .regalia { background: var(--paper); }
 .regalia-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; max-width: 860px; margin: 0 auto; }
 /* документ, привязанный к регалии */
-.regalia-doc { display: block; margin-top: 18px; text-decoration: none; }
+.regalia-docs { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
+.regalia-docs.multi { flex-direction: row; }
+.regalia-doc { display: block; text-decoration: none; flex: 1; min-width: 0; }
 .regalia-doc img { width: 100%; height: 220px; object-fit: cover; object-position: top; border: 1px solid #e6dcc2; border-radius: 3px; background: #fff; transition: .25s; }
+.regalia-docs.multi .regalia-doc img { height: 140px; }
 .regalia-doc:hover img { border-color: var(--gold); }
 .regalia-doc span { display: inline-block; margin-top: 10px; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--gold-d); border-bottom: 1px solid transparent; }
 .regalia-doc:hover span { border-bottom-color: var(--gold-d); }
@@ -310,7 +314,7 @@ section { padding: 90px 7%; }
 .closing p { color: var(--mute); font-size: 16px; margin-bottom: 30px; }
 
 /* ── footer ── */
-footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; }
+footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px; }
 .fcols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; max-width: var(--maxw); margin: 0 auto; padding-bottom: 36px; border-bottom: 1px solid #343d27; }
 .fcols .brand { font-size: 26px; margin-bottom: 14px; display: inline-block; }
 .fcols p { font-size: 13.5px; line-height: 1.7; }
@@ -351,7 +355,7 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
 .modal-backdrop { position: fixed; inset: 0; background: rgba(26,32,18,.6); backdrop-filter: blur(3px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.open { display: flex; }
 .modal { background: var(--paper); border-radius: 5px; width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,.4); position: relative; }
-.modal-head { background: var(--forest); color: var(--bone); padding: 26px 30px; position: relative; }
+.modal-head { background: var(--hero-bg); color: var(--bone); padding: 26px 30px; position: relative; }
 .modal-head .ey { color: var(--gold); margin-bottom: 8px; }
 .modal-head h3 { font-family: var(--serif); font-size: 26px; font-weight: 700; }
 .modal-head .x { position: absolute; top: 18px; right: 20px; background: none; border: none; color: #cfcab5; font-size: 26px; cursor: pointer; line-height: 1; }
@@ -382,7 +386,7 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
   z-index: 106; display: flex; flex-direction: column; box-shadow: -20px 0 60px rgba(0,0,0,.3);
   transform: translateX(100%); transition: transform .3s ease; }
 .cart-drawer.open { transform: translateX(0); }
-.cart-head { background: var(--forest); color: var(--bone); padding: 22px 26px; display: flex; align-items: center; justify-content: space-between; }
+.cart-head { background: var(--hero-bg); color: var(--bone); padding: 22px 26px; display: flex; align-items: center; justify-content: space-between; }
 .cart-head h3 { font-family: var(--serif); font-size: 22px; font-weight: 700; }
 .cart-head .x { background: none; border: none; color: #cfcab5; font-size: 26px; cursor: pointer; line-height: 1; }
 .cart-body { flex: 1; overflow-y: auto; padding: 20px 26px; }
@@ -426,7 +430,7 @@ footer.site { background: var(--forest); color: #9c9d86; padding: 60px 7% 36px; 
   .hero-accent p { font-size: 16.5px; }
   .page-hero h1 { font-size: 36px; }
   .head h2 { font-size: 34px; }
-  nav.main { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--forest); border-bottom: 1px solid #3a432b; padding: 8px 7%; margin: 0; }
+  nav.main { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--hero-bg); border-bottom: 1px solid #3a432b; padding: 8px 7%; margin: 0; }
   nav.main.open { display: flex; }
   nav.main a { padding: 14px 0; border-bottom: 1px solid #3a432b; }
   header.site { position: sticky; flex-wrap: wrap; }
