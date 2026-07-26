@@ -146,19 +146,25 @@
   document.addEventListener('DOMContentLoaded', render);
   render();
 
-  // кнопка «в корзину» на карточке/странице товара — берёт текущий
-  // выбранный объём/цену с соседней кнопки «Заказать» (уже держит их в актуальном виде)
+  // кнопка «в корзину» на карточке каталога — цена/объём лежат прямо на самой кнопке
+  // (карточка товара на странице — цена/объём лежат на соседней кнопке «Заказать»)
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.js-add-cart');
     if (!btn) return;
-    const card = btn.closest('.pc, .pd-info') || document;
-    const orderBtn = card.querySelector('[data-order]');
+    let price = btn.dataset.price;
+    let volume = btn.dataset.volume;
+    if (price === undefined) {
+      const card = btn.closest('.pc, .pd-info') || document;
+      const orderBtn = card.querySelector('[data-order]');
+      price = orderBtn?.dataset.price || 0;
+      volume = orderBtn?.dataset.volume || '';
+    }
     add({
       id: btn.dataset.id,
       name: btn.dataset.name,
       image: btn.dataset.image,
-      volume: orderBtn?.dataset.volume || '',
-      price: orderBtn?.dataset.price || 0,
+      volume: volume || '',
+      price: price || 0,
     });
   });
 </script>

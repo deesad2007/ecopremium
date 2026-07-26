@@ -161,9 +161,8 @@
     volBtn.classList.add('active');
     const price = Number(volBtn.dataset.price);
     card.querySelector('.js-card-price').innerHTML = nbsp(price) + ' ₽';
-    const btn = card.querySelector('[data-order]');
-    btn.dataset.price = String(price);
-    btn.dataset.volume = volBtn.textContent.trim();
+    const btn = card.querySelector('.js-add-cart');
+    if (btn) { btn.dataset.price = String(price); btn.dataset.volume = volBtn.textContent.trim(); }
   });
 
   // Промокод — заглушка (реальная проверка появится при подключении Робокассы/CRM)

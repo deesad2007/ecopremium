@@ -28,15 +28,11 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 
     <div class="foot">
       <div class="price"><b class="js-card-price">{fmt(base.price)}&nbsp;₽</b></div>
-      <div class="foot-btns">
-        <button type="button" class="add-cart js-add-cart" title="В корзину"
-          data-id={id} data-name={name} data-image={hasPhoto ? image : ''}
-          aria-label="Добавить в корзину">
-          <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-        </button>
-        <button class="add" data-order data-product={name} data-price={base.price}
-          data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
-      </div>
+      <button type="button" class="add js-add-cart" data-id={id} data-name={name}
+        data-image={hasPhoto ? image : ''} data-price={base.price} data-volume={base.volume}>
+        В корзину
+      </button>
     </div>
+    <a href={`/product/${id}`} class="pc-more">Подробнее о товаре</a>
   </div>
 </article>
