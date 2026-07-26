@@ -5,10 +5,11 @@ import Credentials from '../components/Credentials.astro';
 import data from '../data/products.json';
 
 const products = data.products;
-// категории: сначала «Масла», затем категории продуктов питания — показываем только непустые
-const present = [...new Set(products.map((p) => p.category))];
-const order = ['Масла', ...(data.foodCategories || [])];
-const categories = order.filter((c) => present.includes(c));
+// порядок категорий: масла, затем продукты питания
+const categories = ['Масла', ...(data.foodCategories || [])];
+// категории, в которых пока нет товаров — под них показываем плитку «скоро»
+const filled = new Set(products.map((p) => p.category));
+const emptyCategories = categories.filter((c) => !filled.has(c));
 ---
 <Base
   title="Каталог — EcoPremi"
@@ -22,15 +23,27 @@ const categories = order.filter((c) => present.includes(c));
 
   <section>
     <div class="section-inner">
-      {categories.length > 1 && (
-        <div class="filters" id="filters">
-          <button class="active" data-filter="Все">Все</button>
-          {categories.map((c) => <button data-filter={c}>{c}</button>)}
-        </div>
-      )}
+      <div class="filters" id="filters">
+        <button class="active" data-filter="Все">Все</button>
+        {categories.map((c) => <button data-filter={c}>{c}</button>)}
+      </div>
+
       <div class="grid" id="catalogGrid">
         {products.map((p) => <ProductCard product={p} />)}
       </div>
+
+      {emptyCategories.length > 0 && (
+        <div class="soon-grid" id="soonGrid">
+          {emptyCategories.map((c) => (
+            <div class="soon-card" data-category={c} hidden>
+              <div class="soon-ic"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+              <h4>{c}</h4>
+              <p>Скоро в продаже — уточните наличие и цену у менеджера.</p>
+              <button class="btn btn-dark soon-btn" data-order data-product={`Заявка: ${c}`}>Узнать о наличии</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 
@@ -39,14 +52,25 @@ const categories = order.filter((c) => present.includes(c));
 
 <script>
   const filters = document.getElementById('filters');
+  const cards = Array.from(document.querySelectorAll('#catalogGrid .pc'));
+  const soonCards = Array.from(document.querySelectorAll('.soon-card'));
+
+  function apply(f) {
+    // товары нужной категории
+    cards.forEach((c) => {
+      c.style.display = f === 'Все' || c.dataset.category === f ? '' : 'none';
+    });
+    // плитка «скоро» — только когда выбрана пустая категория
+    soonCards.forEach((c) => {
+      c.hidden = !(f !== 'Все' && c.dataset.category === f);
+    });
+  }
+
   filters?.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
     filters.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
-    const f = btn.dataset.filter;
-    document.querySelectorAll('#catalogGrid .pc').forEach((c) => {
-      c.style.display = f === 'Все' || c.dataset.category === f ? '' : 'none';
-    });
+    apply(btn.dataset.filter);
   });
 </script>

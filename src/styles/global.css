@@ -199,6 +199,17 @@ section { padding: 90px 7%; }
 .pc-more:hover { color: var(--kz-green); }
 
 /* ── filter chips ── */
+/* плитки «скоро в продаже» для категорий, где товаров пока нет */
+.soon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 320px)); gap: 20px; justify-content: center; }
+.soon-card { background: #fff; border: 1px solid #ece4d2; border-radius: 4px; padding: 30px 24px; text-align: center; }
+.soon-card[hidden] { display: none; }
+.soon-ic { width: 44px; height: 44px; margin: 0 auto 14px; border-radius: 50%; border: 1px solid var(--kz-green);
+  display: flex; align-items: center; justify-content: center; }
+.soon-ic svg { width: 20px; height: 20px; stroke: var(--kz-green); fill: none; stroke-width: 2; }
+.soon-card h4 { font-family: var(--serif); font-size: 22px; color: var(--kz-green); margin-bottom: 8px; font-weight: 700; }
+.soon-card p { font-size: 13.5px; color: var(--ink); line-height: 1.6; margin-bottom: 18px; }
+.soon-btn { padding: 12px 20px; font-size: 11px; }
+
 .filters { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 44px; }
 .filters button { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 20px; border-radius: 30px; border: 1.3px solid #d9cfb4; background: transparent; color: var(--kz-green); cursor: pointer; transition: .2s; }
 .filters button:hover { border-color: var(--gold-d); color: var(--gold-d); }
