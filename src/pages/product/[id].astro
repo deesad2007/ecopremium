@@ -14,6 +14,60 @@ const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
 const related = data.products.filter((p) => p.id !== id).slice(0, 3);
 const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
+
+// ── разбор описания в блоки: абзацы, подзаголовки, списки, состав, служебное ──
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+// выделяем слова, написанные КАПСОМ (как на исходном сайте) и «в кавычках»
+const emphasize = (s) =>
+  esc(s)
+    .replace(/(«[^»]+»)/g, '<b>$1</b>')
+    .replace(/([А-ЯЁ]{3,}(?:[\s-]+[А-ЯЁ]{2,})*)/g, '<b>$1</b>');
+
+const SPEC_RE = /^(Жирные кислоты|Витамины|Витаминно-минеральный состав|Макро и микроэлементы|Микро-макроэлементы|Аминокислоты|Фитостеролы|В состав входят|В состав ЧТ входят|Состав расторопши)/i;
+const META_RE = /^(Срок годности|Хранить|Масло отжимается|Объем|Объём|Допускается|Жмых по желанию)/i;
+const BONUS_RE = /^(БОНУСОМ|Бонусом)/i;
+const CLAIM_RE = /^(АНАЛОГОВ|Аналогов)/i;
+const WARN_RE = /^(Противопоказания|С осторожностью|Не стоит использовать|Детям рекомендуют)/i;
+
+const blocks = [];
+for (const rawLine of String(description).split('\n')) {
+  const line = rawLine.trim();
+  if (!line) continue;
+
+  const last = blocks[blocks.length - 1];
+
+  // строка, внутри которой звёздочками перечислены пункты → список
+  // (несколько подряд идущих строк-пунктов собираются в один общий список)
+  if ((line.match(/\*/g) || []).length >= 2 || /^[*-]\s?\S/.test(line)) {
+    const lead = line.split(/[*]/)[0].trim();
+    const items = line.split('*').slice(1).map((s) => s.trim()).filter(Boolean);
+    if (lead) blocks.push({ type: 'p', html: emphasize(lead) });
+    if (!items.length) continue;
+    const tail = blocks[blocks.length - 1];
+    if (tail && tail.type === 'ul') tail.items.push(...items.map(emphasize));
+    else blocks.push({ type: 'ul', items: items.map(emphasize) });
+    continue;
+  }
+  if (CLAIM_RE.test(line)) { blocks.push({ type: 'claim', html: esc(line) }); continue; }
+  if (BONUS_RE.test(line)) { blocks.push({ type: 'bonus', html: emphasize(line) }); continue; }
+  // продолжение строки бонуса («Который добавляем в выпечку…») — приклеиваем к ней
+  if (last && last.type === 'bonus' && /^(Который|Которые|Его|Их)\s/i.test(line)) {
+    last.html += ' ' + emphasize(line);
+    continue;
+  }
+  if (META_RE.test(line)) { blocks.push({ type: 'meta', html: emphasize(line) }); continue; }
+  if (WARN_RE.test(line)) { blocks.push({ type: 'warn', html: emphasize(line) }); continue; }
+  if (SPEC_RE.test(line)) { blocks.push({ type: 'spec', html: emphasize(line) }); continue; }
+  // короткий вопрос или короткая строка без точки в конце → подзаголовок
+  if (line.length < 110 && (/\?$/.test(line) || (!/[.!]$/.test(line) && line.length < 70))) {
+    blocks.push({ type: 'h', html: esc(line) });
+    continue;
+  }
+  blocks.push({ type: 'p', html: emphasize(line) });
+}
+// служебные строки (срок годности, объём, бонус) собираем в отдельную рамку внизу
+const mainBlocks = blocks.filter((b) => !['meta', 'bonus', 'claim'].includes(b.type));
+const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.type));
 ---
 <Base title={`${name} — EcoPremi`} description={product.short}>
   <section style="padding-top:48px">
@@ -32,7 +86,24 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
           <b id="pdPrice">{fmt(base.price)}&nbsp;₽</b>
           <span class="per-vol-lg" id="pdPerVol">за {base.volume}</span>
         </div>
-        <p class="desc">{description}</p>
+        <div class="pd-desc">
+          {mainBlocks.map((b) => (
+            b.type === 'h' ? <h3 class="pd-h" set:html={b.html} />
+            : b.type === 'ul' ? <ul class="pd-list">{b.items.map((it) => <li set:html={it} />)}</ul>
+            : b.type === 'spec' ? <p class="pd-spec" set:html={b.html} />
+            : b.type === 'warn' ? <p class="pd-warn" set:html={b.html} />
+            : <p set:html={b.html} />
+          ))}
+        </div>
+        {footBlocks.length > 0 && (
+          <div class="pd-facts">
+            {footBlocks.map((b) => (
+              b.type === 'claim' ? <div class="pd-claim" set:html={b.html} />
+              : b.type === 'bonus' ? <div class="pd-bonus" set:html={b.html} />
+              : <div class="pd-meta-line" set:html={b.html} />
+            ))}
+          </div>
+        )}
         <div class="pd-vol">
           <span class="vol-label">Объём</span>
           <div class="vol-opts" id="pdVolOpts">

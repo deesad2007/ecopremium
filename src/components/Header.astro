@@ -2,8 +2,7 @@
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href) => (href === '/' ? path === '/' : path.startsWith(href));
 const links = [
-  { href: '/catalog', label: 'Масла' },
-  { href: '/food', label: 'Продукты питания' },
+  { href: '/catalog', label: 'Каталог' },
   { href: '/about', label: 'Технология' },
   { href: '/delivery', label: 'Доставка' },
   { href: '/contacts', label: 'Контакты' },
