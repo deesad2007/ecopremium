@@ -18,7 +18,29 @@ const json = (body, status = 200) =>
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 
-export async function POST({ request }) {
+// ── простая защита от флуда: не больше N заявок с одного IP за окно ──
+// Память живёт в пределах инстанса функции — это не «броня», но отсекает
+// примитивный спам-флуд, не требуя внешнего хранилища.
+const RATE_LIMIT = { max: 5, windowMs: 10 * 60 * 1000 };
+const hits = new Map();
+const rateLimited = (ip) => {
+  if (!ip) return false;
+  const now = Date.now();
+  const list = (hits.get(ip) || []).filter((t) => now - t < RATE_LIMIT.windowMs);
+  list.push(now);
+  hits.set(ip, list);
+  if (hits.size > 5000) hits.clear(); // страховка от разрастания памяти
+  return list.length > RATE_LIMIT.max;
+};
+
+// ограничение длины полей — чтобы нельзя было залить «простыню» в CRM/телеграм
+const cut = (s, max) => String(s || '').trim().slice(0, max);
+
+export async function POST({ request, clientAddress }) {
+  // тело заявки не может быть большим — режем гигантские payload сразу
+  const len = Number(request.headers.get('content-length') || 0);
+  if (len > 20_000) return json({ error: 'Слишком большой запрос' }, 413);
+
   let data;
   try {
     data = await request.json();
@@ -29,22 +51,26 @@ export async function POST({ request }) {
   // honeypot — молча принимаем, ничего не делаем
   if (data.company) return json({ ok: true });
 
-  const name = (data.name || '').trim();
-  const phone = (data.phone || '').trim();
+  if (rateLimited(clientAddress)) {
+    return json({ error: 'Слишком много заявок подряд. Попробуйте через несколько минут.' }, 429);
+  }
+
+  const name = cut(data.name, 100);
+  const phone = cut(data.phone, 30);
   if (!name || !phone) return json({ error: 'Имя и телефон обязательны' }, 400);
 
   const order = {
     name,
     phone,
-    email: (data.email || '').trim(),
-    product: (data.product || '').trim(),
+    email: cut(data.email, 120),
+    product: cut(data.product, 200),
     price: Number(data.price) || 0,
-    volume: (data.volume || '').trim(),
-    composition: (data.composition || '').trim(),
-    delivery: (data.delivery || '').trim(),
-    promo: (data.promo || '').trim(),
-    comment: (data.comment || '').trim(),
-    page: (data.page || '').trim(),
+    volume: cut(data.volume, 40),
+    composition: cut(data.composition, 2000),
+    delivery: cut(data.delivery, 80),
+    promo: cut(data.promo, 60),
+    comment: cut(data.comment, 2000),
+    page: cut(data.page, 200),
     at: new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }),
   };
 
