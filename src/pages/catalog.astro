@@ -66,11 +66,29 @@ const emptyCategories = categories.filter((c) => !filled.has(c));
     });
   }
 
+  function select(cat) {
+    const btn = filters?.querySelector(`[data-filter="${CSS.escape(cat)}"]`);
+    if (!btn) return false;
+    filters.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    apply(cat);
+    return true;
+  }
+
   filters?.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
     if (!btn) return;
-    filters.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    apply(btn.dataset.filter);
+    select(btn.dataset.filter);
+    // держим выбранную категорию в адресе, чтобы ссылкой можно было делиться
+    const url = new URL(location.href);
+    if (btn.dataset.filter === 'Все') url.searchParams.delete('cat');
+    else url.searchParams.set('cat', btn.dataset.filter);
+    history.replaceState(null, '', url);
   });
+
+  // категория из адреса (?cat=Мука) — переход из меню сразу в нужный раздел
+  const fromUrl = new URLSearchParams(location.search).get('cat');
+  if (fromUrl && select(fromUrl)) {
+    document.getElementById('filters')?.scrollIntoView({ block: 'start' });
+  }
 </script>

@@ -1,8 +1,13 @@
 ---
+import data from '../data/products.json';
+
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href) => (href === '/' ? path === '/' : path.startsWith(href));
+
+// категории каталога для выпадающего подменю
+const categories = ['Масла', ...(data.foodCategories || [])];
+
 const links = [
-  { href: '/catalog', label: 'Каталог' },
   { href: '/about', label: 'Технология' },
   { href: '/delivery', label: 'Доставка' },
   { href: '/contacts', label: 'Контакты' },
@@ -11,6 +16,18 @@ const links = [
 <header class="site">
   <a href="/" class="brand">Eco<i>Premi</i><small>Поставщик Кремля</small></a>
   <nav class="main" id="mainNav">
+    {/* Каталог — раскрывающийся пункт с категориями */}
+    <div class="nav-group" id="catGroup">
+      <a href="/catalog" class="nav-group-link" aria-current={isActive('/catalog') ? 'page' : undefined}>Каталог</a>
+      <button class="nav-group-toggle" id="catToggle" aria-label="Показать категории" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="nav-sub" id="catSub">
+        <a href="/catalog">Все товары</a>
+        {categories.map((c) => <a href={`/catalog?cat=${encodeURIComponent(c)}`}>{c}</a>)}
+      </div>
+    </div>
+
     {links.map((l) => (
       <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>{l.label}</a>
     ))}
@@ -31,6 +48,17 @@ const links = [
   burger?.addEventListener('click', () => {
     const open = nav.classList.toggle('open');
     burger.setAttribute('aria-expanded', String(open));
+    // при закрытии меню сворачиваем и подменю категорий
+    if (!open) document.getElementById('catGroup')?.classList.remove('open');
+  });
+
+  // раскрытие списка категорий внутри меню
+  const catToggle = document.getElementById('catToggle');
+  const catGroup = document.getElementById('catGroup');
+  catToggle?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const open = catGroup.classList.toggle('open');
+    catToggle.setAttribute('aria-expanded', String(open));
   });
 
   document.getElementById('cartToggle')?.addEventListener('click', () => {

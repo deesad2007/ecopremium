@@ -46,6 +46,18 @@ header.site { position: sticky; top: 0; z-index: 40; display: flex; align-items:
 nav.main { margin: 0 auto; display: flex; gap: 34px; }
 nav.main a { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--bone); text-decoration: none; font-weight: 600; transition: .2s; }
 nav.main a:hover, nav.main a[aria-current="page"] { color: var(--kz-green-lt); }
+
+/* ── пункт «Каталог» с категориями ── */
+.nav-group { position: relative; display: flex; align-items: center; gap: 6px; }
+.nav-group-toggle { background: none; border: none; cursor: pointer; padding: 2px; display: flex; align-items: center; }
+.nav-group-toggle svg { width: 15px; height: 15px; stroke: var(--bone); fill: none; stroke-width: 2.2; transition: transform .2s, stroke .2s; }
+.nav-group:hover .nav-group-toggle svg { stroke: var(--kz-green-lt); }
+.nav-sub { position: absolute; top: calc(100% + 14px); left: -18px; min-width: 210px; background: var(--hero-bg);
+  border: 1px solid #2e2738; border-radius: 4px; padding: 8px 0; box-shadow: 0 18px 40px rgba(0,0,0,.45);
+  opacity: 0; visibility: hidden; transform: translateY(-6px); transition: .2s; z-index: 50; }
+.nav-group:hover .nav-sub { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-sub a { display: block; padding: 11px 20px; font-size: 12.5px; letter-spacing: .1em; white-space: nowrap; }
+.nav-sub a:hover { background: rgba(92,196,44,.12); color: var(--kz-green-lt); }
 .nav-cta { border: 1.4px solid #6f7a52; color: var(--bone); padding: 10px 22px; border-radius: 2px; text-decoration: none; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; transition: .25s; white-space: nowrap; }
 .nav-cta:hover { border-color: var(--kz-green-lt); color: var(--kz-green-lt); }
 .burger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; padding: 6px; }
@@ -488,6 +500,21 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
   nav.main { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--hero-bg); border-bottom: 1px solid #3a432b; padding: 8px 7%; margin: 0; }
   nav.main.open { display: flex; }
   nav.main a { padding: 14px 0; border-bottom: 1px solid #3a432b; }
+
+  /* «Каталог» в мобильном меню — раскрывается по стрелке, категории списком */
+  .nav-group { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0; position: static; }
+  .nav-group-link { grid-column: 1; }
+  .nav-group-toggle { grid-column: 2; position: static; margin: 0; padding: 10px 0 10px 14px;
+    border-bottom: 1px solid #3a432b; align-self: stretch; }
+  .nav-group-toggle svg { width: 20px; height: 20px; }
+  .nav-sub { grid-column: 1 / -1; }
+  .nav-group.open .nav-group-toggle svg { transform: rotate(180deg); stroke: var(--kz-green-lt); }
+  .nav-sub { position: static; min-width: 0; background: none; border: none; box-shadow: none;
+    padding: 0; opacity: 1; visibility: visible; transform: none; display: none; }
+  .nav-group.open .nav-sub { display: block; }
+  .nav-sub a { padding: 12px 0 12px 18px; font-size: 13px; color: #cfcab5; border-bottom: 1px solid #2a2434; }
+  .nav-sub a:hover { background: none; }
+  .nav-sub a:last-child { border-bottom: none; }
   header.site { position: sticky; flex-wrap: wrap; }
   .burger { display: flex; margin-left: auto; }
   .nav-cta { display: none; }
