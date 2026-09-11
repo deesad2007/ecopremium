@@ -79,7 +79,7 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
   <section style="padding-top:48px">
     <div class="pd">
       <div class={`pd-media ${art}`}>
-        {hasPhoto ? <img src={image} alt={name} /> : isFood ? <FoodPlaceholder /> : <Bottle art={art} />}
+        {hasPhoto ? <img src={image} alt={name} /> : isFood ? <FoodPlaceholder kind={product.category} /> : <Bottle art={art} />}
       </div>
       <div class="pd-info">
         <div class="crumbs"><a href="/">Главная</a> / <a href="/catalog">Каталог</a> / {name}</div>
@@ -119,7 +119,7 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
         )}
         {hasPrice && variants.length > 0 && (
         <div class="pd-vol">
-          <span class="vol-label">{isFood ? 'Фасовка' : 'Объём'}</span>
+          <span class="vol-label">{!isFood ? 'Объём' : ['Хлеб', 'Печенье'].includes(product.category) ? 'Вес' : 'Фасовка'}</span>
           <div class="vol-opts" id="pdVolOpts">
             {variants.map((v, i) => (
               <button type="button" class={`vol-btn${i === 0 ? ' active' : ''}`}

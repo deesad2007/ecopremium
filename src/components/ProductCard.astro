@@ -12,7 +12,7 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 <article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
     {hasPhoto ? <img src={image} alt={name} loading="lazy" />
-      : product.section === 'food' ? <FoodPlaceholder /> : <Bottle art={art} />}
+      : product.section === 'food' ? <FoodPlaceholder kind={product.category} /> : <Bottle art={art} />}
   </a>
   <div class="body">
     <div class="art-no">Артикул {id}</div>

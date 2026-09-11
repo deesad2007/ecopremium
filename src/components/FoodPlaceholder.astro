@@ -1,17 +1,40 @@
 ---
-// Плейсхолдер для продуктов питания без фото: миска с зерном (вместо бутылки масла).
+// Плейсхолдер для продуктов питания без фото (вместо бутылки масла):
+// хлеб — буханка, печенье — печенье, остальное — миска с зерном.
+const { kind = '' } = Astro.props;
 ---
 <svg class="food-ph" viewBox="0 0 120 100" fill="none" aria-hidden="true">
-  <path d="M26 50c4-12 18-20 34-20s30 8 34 20z" fill="#e2c27d" stroke="#b58c33" stroke-width="1.2"></path>
-  <g fill="#c99a45">
-    <ellipse cx="44" cy="40" rx="3" ry="1.8" transform="rotate(-20 44 40)"></ellipse>
-    <ellipse cx="56" cy="35" rx="3" ry="1.8" transform="rotate(15 56 35)"></ellipse>
-    <ellipse cx="68" cy="39" rx="3" ry="1.8" transform="rotate(-10 68 39)"></ellipse>
-    <ellipse cx="78" cy="45" rx="3" ry="1.8" transform="rotate(25 78 45)"></ellipse>
-    <ellipse cx="36" cy="46" rx="3" ry="1.8" transform="rotate(10 36 46)"></ellipse>
-    <ellipse cx="60" cy="44" rx="3" ry="1.8" transform="rotate(-30 60 44)"></ellipse>
-  </g>
-  <path d="M20 50h80c-2 20-18 32-40 32S22 70 20 50z" fill="#fff" stroke="#b58c33" stroke-width="1.4"></path>
-  <path d="M46 82h28l-3 7H49z" fill="#fff" stroke="#b58c33" stroke-width="1.2"></path>
-  <path d="M30 58c6 10 16 15 30 15" stroke="#e7d6ab" stroke-width="2" stroke-linecap="round"></path>
+  {kind === 'Хлеб' ? (
+    <g>
+      <path d="M16 68c0-22 20-38 44-38s44 16 44 38c0 8-6 12-14 12H30c-8 0-14-4-14-12z" fill="#e2b56a" stroke="#a8772e" stroke-width="1.4"></path>
+      <path d="M38 44l9 13M56 39l9 15M74 42l9 13" stroke="#a8772e" stroke-width="1.8" stroke-linecap="round"></path>
+      <path d="M24 88h72" stroke="#d9c49a" stroke-width="2" stroke-linecap="round"></path>
+    </g>
+  ) : kind === 'Печенье' ? (
+    <g>
+      <circle cx="74" cy="42" r="19" fill="#efd39b" stroke="#b58c33" stroke-width="1.4"></circle>
+      <circle cx="46" cy="58" r="24" fill="#e8c787" stroke="#b58c33" stroke-width="1.4"></circle>
+      <g fill="#b07a35">
+        <circle cx="38" cy="50" r="2.2"></circle><circle cx="52" cy="48" r="2.2"></circle>
+        <circle cx="44" cy="62" r="2.2"></circle><circle cx="58" cy="64" r="2.2"></circle>
+        <circle cx="34" cy="66" r="2.2"></circle><circle cx="80" cy="36" r="2"></circle>
+        <circle cx="70" cy="30" r="2"></circle>
+      </g>
+    </g>
+  ) : (
+    <g>
+      <path d="M26 50c4-12 18-20 34-20s30 8 34 20z" fill="#e2c27d" stroke="#b58c33" stroke-width="1.2"></path>
+      <g fill="#c99a45">
+        <ellipse cx="44" cy="40" rx="3" ry="1.8" transform="rotate(-20 44 40)"></ellipse>
+        <ellipse cx="56" cy="35" rx="3" ry="1.8" transform="rotate(15 56 35)"></ellipse>
+        <ellipse cx="68" cy="39" rx="3" ry="1.8" transform="rotate(-10 68 39)"></ellipse>
+        <ellipse cx="78" cy="45" rx="3" ry="1.8" transform="rotate(25 78 45)"></ellipse>
+        <ellipse cx="36" cy="46" rx="3" ry="1.8" transform="rotate(10 36 46)"></ellipse>
+        <ellipse cx="60" cy="44" rx="3" ry="1.8" transform="rotate(-30 60 44)"></ellipse>
+      </g>
+      <path d="M20 50h80c-2 20-18 32-40 32S22 70 20 50z" fill="#fff" stroke="#b58c33" stroke-width="1.4"></path>
+      <path d="M46 82h28l-3 7H49z" fill="#fff" stroke="#b58c33" stroke-width="1.2"></path>
+      <path d="M30 58c6 10 16 15 30 15" stroke="#e7d6ab" stroke-width="2" stroke-linecap="round"></path>
+    </g>
+  )}
 </svg>
