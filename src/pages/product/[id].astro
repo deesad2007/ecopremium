@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Bottle from '../../components/Bottle.astro';
+import FoodPlaceholder from '../../components/FoodPlaceholder.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import data from '../../data/products.json';
 
@@ -12,7 +13,12 @@ const { product } = Astro.props;
 const { id, name, description, art, image, badges = [], variants = [] } = product;
 const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
-const related = data.products.filter((p) => p.id !== id).slice(0, 3);
+const hasPrice = base.price != null && base.price !== '';
+const isFood = product.section === 'food';
+// «может понравиться» — сначала из той же категории, затем из того же раздела
+const sameCat = data.products.filter((p) => p.id !== id && p.category === product.category);
+const sameSection = data.products.filter((p) => p.id !== id && p.section === product.section && p.category !== product.category);
+const related = [...sameCat, ...sameSection].slice(0, 3);
 const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 
 // ── разбор описания в блоки: абзацы, подзаголовки, списки, состав, служебное ──
@@ -30,7 +36,7 @@ const CLAIM_RE = /^(АНАЛОГОВ|Аналогов)/i;
 const WARN_RE = /^(Противопоказания|С осторожностью|Не стоит использовать|Детям рекомендуют)/i;
 
 const blocks = [];
-for (const rawLine of String(description).split('\n')) {
+for (const rawLine of String(description || product.short || '').split('\n')) {
   const line = rawLine.trim();
   if (!line) continue;
 
@@ -73,7 +79,7 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
   <section style="padding-top:48px">
     <div class="pd">
       <div class={`pd-media ${art}`}>
-        {hasPhoto ? <img src={image} alt={name} /> : <Bottle art={art} />}
+        {hasPhoto ? <img src={image} alt={name} /> : isFood ? <FoodPlaceholder /> : <Bottle art={art} />}
       </div>
       <div class="pd-info">
         <div class="crumbs"><a href="/">Главная</a> / <a href="/catalog">Каталог</a> / {name}</div>
@@ -82,10 +88,17 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
           {badges.map((b) => <span>{b}</span>)}
           <span>Артикул {id}</span>
         </div>
-        <div class="pd-price">
-          <b id="pdPrice">{fmt(base.price)}&nbsp;₽</b>
-          <span class="per-vol-lg" id="pdPerVol">за {base.volume}</span>
-        </div>
+        {hasPrice ? (
+          <div class="pd-price">
+            <b id="pdPrice">{fmt(base.price)}&nbsp;₽</b>
+            <span class="per-vol-lg" id="pdPerVol">за {base.volume}</span>
+          </div>
+        ) : (
+          <div class="pd-price pd-price-ask">
+            <b>Цена по&nbsp;запросу</b>
+            <span class="per-vol-lg">уточнит менеджер</span>
+          </div>
+        )}
         <div class="pd-desc">
           {mainBlocks.map((b) => (
             b.type === 'h' ? <h3 class="pd-h" set:html={b.html} />
@@ -104,8 +117,9 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
             ))}
           </div>
         )}
+        {hasPrice && variants.length > 0 && (
         <div class="pd-vol">
-          <span class="vol-label">Объём</span>
+          <span class="vol-label">{isFood ? 'Фасовка' : 'Объём'}</span>
           <div class="vol-opts" id="pdVolOpts">
             {variants.map((v, i) => (
               <button type="button" class={`vol-btn${i === 0 ? ' active' : ''}`}
@@ -113,15 +127,24 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
             ))}
           </div>
         </div>
+        )}
         <div class="pd-actions">
-          <button class="btn btn-g" id="pdOrder" data-order data-product={name} data-price={base.price}
-            data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
-          <button type="button" class="btn btn-dark js-add-cart"
-            data-id={id} data-name={name} data-image={hasPhoto ? image : ''}>В корзину</button>
+          {hasPrice ? (
+            <>
+              <button class="btn btn-g" id="pdOrder" data-order data-product={name} data-price={base.price}
+                data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
+              <button type="button" class="btn btn-dark js-add-cart"
+                data-id={id} data-name={name} data-image={hasPhoto ? image : ''}>В корзину</button>
+            </>
+          ) : (
+            <button class="btn btn-g" data-order data-product={name}>Узнать цену</button>
+          )}
           <a href="/delivery" class="btn btn-dark">Доставка и оплата</a>
         </div>
         <div class="pd-note">
-          Свежий отжим под заказ — давим в день отправки. Хранить в холодильнике в тёмной таре.
+          {isFood
+            ? 'Цену, фасовку и наличие менеджер подтвердит после заявки.'
+            : 'Свежий отжим под заказ — давим в день отправки. Хранить в холодильнике в тёмной таре.'}
           Бесплатная доставка от 10&nbsp;000&nbsp;₽. Оплата картой по согласованию после подтверждения заказа.
         </div>
       </div>
@@ -130,7 +153,7 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
 
   <section style="padding-top:24px">
     <div class="section-inner">
-      <div class="head"><div class="lbl ey">Ещё масла</div><h2>Может <em>понравиться</em></h2><div class="rule"></div></div>
+      <div class="head"><div class="lbl ey">{isFood ? product.category : 'Ещё масла'}</div><h2>Может <em>понравиться</em></h2><div class="rule"></div></div>
       <div class="grid">
         {related.map((p) => <ProductCard product={p} />)}
       </div>

@@ -533,3 +533,10 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
   .hero-accent p { font-size: 16px; }
   .acts .btn { padding: 14px 24px; font-size: 12px; }
 }
+
+/* «цена по запросу» — продукты, по которым ещё нет цен от клиента */
+.pc .price-ask { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--forest); line-height: 1.15; }
+.pd-price-ask b { font-size: 30px; }
+/* плейсхолдер продуктов питания без фото */
+.pc .top svg.food-ph { height: 118px; }
+.pd-media svg.food-ph { height: 230px; }

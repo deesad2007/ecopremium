@@ -4,7 +4,8 @@ import Regalia from '../components/Regalia.astro';
 import ProductCard from '../components/ProductCard.astro';
 import data from '../data/products.json';
 
-const products = data.products;
+// на главной — только масла; продукты питания живут в каталоге
+const products = data.products.filter((p) => p.section === 'oils');
 const usp = [
   { t: 'Поставщик Московского Кремля', d: 'Качество, проверенное в лаборатории Управделами Президента РФ', accent: 'violet' },
   { t: 'Единственный производитель органического масла в России', d: 'Органический сертификат ГОСТ 33980-2016, №065 «Роскачество», Госреестр Минсельхоза.', accent: 'violet' },

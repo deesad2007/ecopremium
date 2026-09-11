@@ -1,21 +1,25 @@
 ---
 import Bottle from './Bottle.astro';
+import FoodPlaceholder from './FoodPlaceholder.astro';
 const { product } = Astro.props;
 const { id, name, art, image, badges = [], short, variants = [] } = product;
 const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
+// у части продуктов питания цены пока нет — вместо корзины показываем «цена по запросу»
+const hasPrice = base.price != null && base.price !== '';
 const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
 ---
 <article class="pc" data-category={product.category}>
   <a href={`/product/${id}`} class={`top ${art}`} style="text-decoration:none">
-    {hasPhoto ? <img src={image} alt={name} loading="lazy" /> : <Bottle art={art} />}
+    {hasPhoto ? <img src={image} alt={name} loading="lazy" />
+      : product.section === 'food' ? <FoodPlaceholder /> : <Bottle art={art} />}
   </a>
   <div class="body">
     <div class="art-no">Артикул {id}</div>
     <h3><a href={`/product/${id}`} style="text-decoration:none;color:inherit">{name}</a></h3>
     <div class="desc">{short}</div>
 
-    {variants.length > 1 && (
+    {hasPrice && variants.length > 1 && (
       <div class="card-vols">
         {variants.map((v, i) => (
           <button type="button" class={`card-vol-btn${i === 0 ? ' active' : ''}`} data-price={v.price}>{v.volume}</button>
@@ -24,11 +28,23 @@ const fmt = (n) => n.toLocaleString('ru-RU').replace(/ /g, ' ');
     )}
 
     <div class="foot">
-      <div class="price"><b class="js-card-price">{fmt(base.price)}&nbsp;₽</b></div>
-      <button type="button" class="add js-add-cart" data-id={id} data-name={name}
-        data-image={hasPhoto ? image : ''} data-price={base.price} data-volume={base.volume}>
-        В корзину
-      </button>
+      {hasPrice ? (
+        <>
+          <div class="price">
+            <b class="js-card-price">{fmt(base.price)}&nbsp;₽</b>
+            {variants.length === 1 && <span class="per-vol">за {base.volume}</span>}
+          </div>
+          <button type="button" class="add js-add-cart" data-id={id} data-name={name}
+            data-image={hasPhoto ? image : ''} data-price={base.price} data-volume={base.volume}>
+            В корзину
+          </button>
+        </>
+      ) : (
+        <>
+          <div class="price price-ask">Цена по&nbsp;запросу</div>
+          <button type="button" class="add" data-order data-product={name}>Узнать цену</button>
+        </>
+      )}
     </div>
     <a href={`/product/${id}`} class="pc-more">Подробнее о товаре</a>
   </div>
