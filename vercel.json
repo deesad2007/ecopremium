@@ -34,5 +34,87 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/len",
+      "destination": "/product/002",
+      "permanent": true
+    },
+    {
+      "source": "/tikva",
+      "destination": "/product/003",
+      "permanent": true
+    },
+    {
+      "source": "/konopl",
+      "destination": "/product/004",
+      "permanent": true
+    },
+    {
+      "source": "/amarant",
+      "destination": "/product/005",
+      "permanent": true
+    },
+    {
+      "source": "/rastoropshi",
+      "destination": "/product/006",
+      "permanent": true
+    },
+    {
+      "source": "/gorch",
+      "destination": "/product/007",
+      "permanent": true
+    },
+    {
+      "source": "/podsoln",
+      "destination": "/product/008",
+      "permanent": true
+    },
+    {
+      "source": "/oblepiha",
+      "destination": "/product/009",
+      "permanent": true
+    },
+    {
+      "source": "/tmin",
+      "destination": "/product/010",
+      "permanent": true
+    },
+    {
+      "source": "/abrikos",
+      "destination": "/product/011",
+      "permanent": true
+    },
+    {
+      "source": "/kedr",
+      "destination": "/product/012",
+      "permanent": true
+    },
+    {
+      "source": "/greck",
+      "destination": "/product/013",
+      "permanent": true
+    },
+    {
+      "source": "/kokos",
+      "destination": "/catalog",
+      "permanent": true
+    },
+    {
+      "source": "/kontacts",
+      "destination": "/contacts",
+      "permanent": true
+    },
+    {
+      "source": "/thanks",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/statya",
+      "destination": "/about",
+      "permanent": true
+    }
   ]
 }
