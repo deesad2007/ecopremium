@@ -39,82 +39,82 @@
     {
       "source": "/len",
       "destination": "/product/002",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/tikva",
       "destination": "/product/003",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/konopl",
       "destination": "/product/004",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/amarant",
       "destination": "/product/005",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/rastoropshi",
       "destination": "/product/006",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/gorch",
       "destination": "/product/007",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/podsoln",
       "destination": "/product/008",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/oblepiha",
       "destination": "/product/009",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/tmin",
       "destination": "/product/010",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/abrikos",
       "destination": "/product/011",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/kedr",
       "destination": "/product/012",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/greck",
       "destination": "/product/013",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/kokos",
       "destination": "/catalog",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/kontacts",
       "destination": "/contacts",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/thanks",
       "destination": "/",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/statya",
       "destination": "/about",
-      "permanent": true
+      "statusCode": 301
     }
   ]
 }
