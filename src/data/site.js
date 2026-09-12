@@ -7,6 +7,10 @@ export const contacts = {
   whatsapp: 'https://wa.me/79654128540',
   whatsappRaw: '79654128540',
   telegram: 'https://t.me/EkoPremi',
+  // MAX: ссылок «написать по номеру» (как wa.me) у мессенджера нет — нужна ссылка
+  // на профиль вида https://max.ru/u/<хеш> (в приложении: аватар → QR → «Поделиться»).
+  // Пока пусто — кнопка MAX на сайте не показывается.
+  max: '',
   telegramBot: '@Ecopremi_bot',
   email: 'maslo8540@mail.ru',
   vk: 'https://vk.com/ekopremi',

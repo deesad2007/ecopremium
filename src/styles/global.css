@@ -540,3 +540,4 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
 /* плейсхолдер продуктов питания без фото */
 .pc .top svg.food-ph { height: 118px; }
 .pd-media svg.food-ph { height: 230px; }
+.quick .mx { background: linear-gradient(135deg, #10a5ff, #00eaff); }

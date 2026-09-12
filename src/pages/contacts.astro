@@ -24,6 +24,12 @@ import { contacts } from '../data/site.js';
           <div class="ic"><svg viewBox="0 0 24 24"><path d="M21.5 4.5l-19 8 6 2 2 6 3-4 5 4 3-16z"/></svg></div>
           <h4>Telegram</h4><p>Канал и бот {contacts.telegramBot}</p>
         </a>
+        {contacts.max && (
+        <a class="contact-card" href={contacts.max} target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M12 2.4c5.3 0 9.6 4.1 9.6 9.4 0 5.3-4.3 9.5-9.4 9.5-1.8 0-3.2-.4-4.6-1.4-.3.4-1 1-1.8 1.4-1.1.5-2.4.5-2.5-.6 0-2.8-1.4-4.6-1.4-8.7C1.9 6.5 6.6 2.4 12 2.4zm.1 4.7c-2.6-.1-4.5 1.7-5 4.5-.4 2.3.3 5.1.8 5.2.3.1.9-.4 1.3-.8.4.2 1.5.8 2.8.9 2.6.1 4.9-1.9 5.1-4.5.1-2.6-1.9-5.1-5-5.3z"/></svg>
+          <h4>MAX</h4><p>Написать в MAX</p>
+        </a>
+        )}
         <a class="contact-card" href={`mailto:${contacts.email}`}>
           <div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg></div>
           <h4>E-mail</h4><p>{contacts.email}</p>
