@@ -2,17 +2,10 @@
 // Политика обработки персональных данных. Требуется по 152-ФЗ (на сайте есть форма
 // с именем, телефоном и почтой) и входит в проверочный список платёжных систем.
 import Base from '../layouts/Base.astro';
-import { contacts } from '../data/site.js';
+import { contacts, seller } from '../data/site.js';
 
 // Клиент — самозанятый (НПД): ОГРН и юридического адреса у него нет,
 // есть ФИО и ИНН физлица. Заполнить и перенести файл обратно в src/pages/.
-const OPERATOR = {
-  name: 'Науршин Евгений Федорович',
-  inn: '420516957830',
-  city: 'Костромская область',
-  status: 'самозанятый, плательщик налога на профессиональный доход',
-  filled: true,
-};
 ---
 <Base title="Политика обработки персональных данных — EcoPremi"
       description="Как EcoPremi обрабатывает персональные данные покупателей.">
@@ -24,8 +17,8 @@ const OPERATOR = {
     <div class="section-inner">
       <div class="legal">
         <h3>1. Оператор</h3>
-        <p>Оператором персональных данных является {OPERATOR.name} — {OPERATOR.status},
-          ИНН {OPERATOR.inn}, {OPERATOR.city}.
+        <p>Оператором персональных данных является {seller.legalName || seller.name} — {seller.legalName ? `ОГРН ${seller.ogrn}` : seller.status},
+          ИНН {seller.inn}, {seller.region}.
           Контакты для обращений: {contacts.email}, {contacts.phone}.</p>
 
         <h3>2. Какие данные мы собираем</h3>
