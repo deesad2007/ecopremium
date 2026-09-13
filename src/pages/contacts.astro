@@ -60,7 +60,7 @@ import { contacts, seller } from '../data/site.js';
       <div class="legal">
         <p><b>{seller.legalName || seller.name}</b><br />
           {seller.legalName ? `ОГРН ${seller.ogrn}` : seller.status}<br />
-          ИНН {seller.inn}<br />
+          ИНН {seller.inn}{seller.kpp ? `, КПП ${seller.kpp}` : ''}<br />
           {seller.region}</p>
         <p>Телефон: <a href={`tel:${contacts.phoneRaw}`}>{contacts.phone}</a><br />
           Электронная почта: <a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
