@@ -6,12 +6,14 @@
 import Base from '../layouts/Base.astro';
 import { contacts } from '../data/site.js';
 
+// Клиент — самозанятый (НПД): ОГРН и юридического адреса у него нет,
+// есть ФИО и ИНН физлица. Заполнить и перенести файл обратно в src/pages/.
 const OPERATOR = {
-  name: '___',      // ИП Иванов И.И. / ООО «...»
-  inn: '___',
-  ogrn: '___',
-  address: '___',
-  filled: false,    // поставить true, когда реквизиты получены
+  name: '___',    // ФИО полностью, как в паспорте
+  inn: '___',     // ИНН физического лица, 12 цифр
+  city: '___',    // город ведения деятельности
+  status: 'самозанятый, плательщик налога на профессиональный доход',
+  filled: false,  // поставить true, когда реквизиты получены
 };
 ---
 <Base title="Политика обработки персональных данных — EcoPremi"
@@ -24,8 +26,8 @@ const OPERATOR = {
     <div class="section-inner">
       <div class="legal">
         <h3>1. Оператор</h3>
-        <p>Оператором персональных данных является {OPERATOR.name} (ИНН {OPERATOR.inn},
-          ОГРН{OPERATOR.ogrn === '___' ? 'ИП' : ''} {OPERATOR.ogrn}), адрес: {OPERATOR.address}.
+        <p>Оператором персональных данных является {OPERATOR.name} — {OPERATOR.status},
+          ИНН {OPERATOR.inn}, {OPERATOR.city}.
           Контакты для обращений: {contacts.email}, {contacts.phone}.</p>
 
         <h3>2. Какие данные мы собираем</h3>
