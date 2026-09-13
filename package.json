@@ -5,7 +5,7 @@
   "private": true,
   "description": "EcoPremium — интернет-магазин сыродавленных масел",
   "engines": {
-    "node": "20.x"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "astro dev",
@@ -21,9 +21,5 @@
     "astro": "^4.16.18",
     "express": "^5.2.1",
     "nodemailer": "^6.9.16"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.38.1",
-    "vercel": "^56.3.2"
   }
 }
