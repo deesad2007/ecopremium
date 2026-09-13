@@ -4,8 +4,8 @@ export const contacts = {
   phoneRaw: '+79960056765',
   phone2: '+7 916-414-0392',
   phone2Raw: '+79164140392',
-  whatsapp: 'https://wa.me/79654128540',
-  whatsappRaw: '79654128540',
+  whatsapp: 'https://wa.me/79960056765',
+  whatsappRaw: '79960056765',
   telegram: 'https://t.me/EkoPremi',
   // MAX: ссылок «написать по номеру» (как wa.me) у мессенджера нет — нужна ссылка
   // на профиль вида https://max.ru/u/<хеш> (в приложении: аватар → QR → «Поделиться»).

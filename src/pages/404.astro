@@ -1,0 +1,26 @@
+---
+// Страница «не найдено». Особенно нужна после переезда с Тильды: по старым
+// адресам, для которых не заведена переадресация, человек должен попадать
+// не в пустоту, а в каталог.
+import Base from '../layouts/Base.astro';
+---
+<Base title="Страница не найдена — EcoPremi" description="Такой страницы нет. Перейдите в каталог или свяжитесь с нами.">
+  <section class="page-hero">
+    <div class="ey lbl">Ошибка 404</div>
+    <h1>Такой страницы <em>нет</em></h1>
+    <p>Возможно, она переехала или в адресе опечатка. Вот куда можно пойти.</p>
+  </section>
+  <section>
+    <div class="section-inner" style="text-align:center">
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:34px">
+        <a href="/catalog" class="btn btn-g">Каталог</a>
+        <a href="/" class="btn btn-dark">На главную</a>
+        <a href="/contacts" class="btn btn-dark">Контакты</a>
+      </div>
+      <p style="font-size:14px;color:var(--ink)">
+        Не нашли нужный товар — напишите нам, подскажем наличие и цену.
+      </p>
+      <div style="margin-top:18px"><button class="btn btn-g" data-order data-product="Вопрос со страницы 404">Задать вопрос</button></div>
+    </div>
+  </section>
+</Base>
