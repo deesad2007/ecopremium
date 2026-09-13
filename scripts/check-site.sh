@@ -16,7 +16,7 @@ redir() { curl -s -o /dev/null -m 20 -w '%{http_code} %{redirect_url}' "$1"; }
 echo "Проверяю: $BASE"
 echo
 echo "Страницы:"
-for p in / /catalog /about /delivery /contacts /oferta /product/002 /product/162 /product/210; do
+for p in / /catalog /about /delivery /contacts /oferta /policy /product/002 /product/162 /product/210; do
   c=$(code "$BASE$p")
   [ "$c" = "200" ] && say ok "$p" || say bad "$p → HTTP $c"
 done

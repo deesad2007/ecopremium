@@ -1,7 +1,7 @@
 // Карта сайта для Яндекса и Google. Собирается из реального списка товаров.
 import data from '../data/products.json';
 
-const STATIC = ['/', '/catalog', '/about', '/delivery', '/contacts', '/oferta'];
+const STATIC = ['/', '/catalog', '/about', '/delivery', '/contacts', '/oferta', '/policy'];
 
 export async function GET({ site }) {
   const base = (site?.href || 'https://ekopremium.ru/').replace(/\/$/, '');
