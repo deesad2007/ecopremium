@@ -541,3 +541,8 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
 .pc .top svg.food-ph { height: 118px; }
 .pd-media svg.food-ph { height: 230px; }
 .quick .mx { background: linear-gradient(135deg, #10a5ff, #00eaff); }
+
+/* согласие на обработку данных — обязательная галочка перед отправкой заявки */
+.consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 16px; font-size: 12.5px; line-height: 1.5; color: var(--ink); cursor: pointer; }
+.consent input { margin-top: 2px; width: 16px; height: 16px; flex: none; accent-color: var(--kz-green); cursor: pointer; }
+.consent a { color: var(--kz-green); text-decoration: underline; }
