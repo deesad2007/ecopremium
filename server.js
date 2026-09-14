@@ -43,5 +43,15 @@ app.use(express.static(path.join(root, 'dist/client'), { maxAge: '1h' }));
 // всё остальное отдаёт Astro
 app.use(astro);
 
+// Astro в режиме middleware не показывает страницу 404 сам: для ненайденных
+// адресов он передаёт запрос дальше, и Express отвечает своей технической
+// заглушкой «Cannot GET». На Vercel страницу подставляла площадка, здесь
+// подставляем сами.
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(root, 'dist/client/404.html'), (err) => {
+    if (err && !res.headersSent) res.status(404).type('text/plain').send('Страница не найдена');
+  });
+});
+
 const port = Number(process.env.PORT) || 3000;
 app.listen(port, '0.0.0.0', () => console.log(`EcoPremi слушает порт ${port}`));
