@@ -9,8 +9,7 @@ export const contacts = {
   telegram: 'https://t.me/EkoPremi',
   // MAX: ссылок «написать по номеру» (как wa.me) у мессенджера нет — нужна ссылка
   // на профиль вида https://max.ru/u/<хеш> (в приложении: аватар → QR → «Поделиться»).
-  // Пока пусто — кнопка MAX на сайте не показывается.
-  max: '',
+  max: 'https://max.ru/u/f9LHodD0cOIx-lnQXUjsaXOKeNVD4W-r9Y-fEhDOKWKu4CB3uUnFngi2a8w',
   telegramBot: '@Ecopremi_bot',
   email: 'maslo8540@mail.ru',
   vk: 'https://vk.com/ekopremi',
