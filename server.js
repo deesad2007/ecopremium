@@ -2,6 +2,7 @@
 // Заголовки безопасности и переадресации со старых адресов Тильды берутся
 // из vercel.json, чтобы настройки не разъехались между площадками.
 import express from 'express';
+import compression from 'compression';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,10 @@ const redirects = new Map((cfg.redirects ?? []).map((r) => [r.source, r]));
 
 const app = express();
 app.disable('x-powered-by');
+
+// Сжатие ответов. На Vercel оно включалось само, на своём сервере его нужно
+// добавить руками: без него главная уезжает клиенту в 44 КБ вместо ~10 КБ.
+app.use(compression());
 
 // заголовки безопасности на каждый ответ, включая статические страницы
 app.use((req, res, next) => {
