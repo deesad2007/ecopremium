@@ -10,7 +10,7 @@ ORDER="${2:-}"
 ok=0; bad=0
 say() { if [ "$1" = "ok" ]; then ok=$((ok+1)); printf '  ✓ %s\n' "$2"; else bad=$((bad+1)); printf '  ✗ %s\n' "$2"; fi; }
 
-code() { curl -s -o /dev/null -m 20 -w '%{http_code}' "$1"; }
+code() { curl -sL --compressed -o /dev/null -m 20 -w '%{http_code}' "$1"; }
 redir() { curl -s -o /dev/null -m 20 -w '%{http_code} %{redirect_url}' "$1"; }
 
 echo "Проверяю: $BASE"
@@ -40,12 +40,12 @@ for pair in "/len:/product/002" "/tikva:/product/003" "/kontacts:/contacts" "/ko
 done
 
 echo "Содержимое:"
-n=$(curl -s -m 20 "$BASE/catalog" | grep -o 'class="pc"' | wc -l | tr -d ' ')
+n=$(curl -sL --compressed -m 20 "$BASE/catalog" | grep -o 'class="pc"' | wc -l | tr -d ' ')
 [ "$n" -ge 70 ] && say ok "в каталоге карточек: $n" || say bad "в каталоге карточек: $n (ожидали 70+)"
 # Сравниваем через case, а не через «curl | grep -q»: grep закрывает поток
 # после первого совпадения, curl падает с ошибкой записи, и при set -o pipefail
 # успешная проверка превращается в провал.
-home=$(curl -s -m 20 "$BASE/")
+home=$(curl -sL --compressed -m 20 "$BASE/")
 case "$home" in
   *'rel="canonical" href="https://ekopremium.ru'*) say ok "канонические ссылки ведут на ekopremium.ru" ;;
   *) say bad "канонические ссылки не на ekopremium.ru — проверить site в astro.config.mjs" ;;
@@ -57,7 +57,7 @@ case "$home" in
   *) say bad "кнопка WhatsApp не найдена" ;;
 esac
 
-notfound=$(curl -s -m 20 "$BASE/такой-страницы-нет-12345")
+notfound=$(curl -s --compressed -m 20 "$BASE/такой-страницы-нет-12345")
 case "$notfound" in
   *'Такой страницы'*) say ok "страница 404 — наша, со ссылками в каталог" ;;
   *) say bad "страница 404 — стандартная заглушка хостинга" ;;

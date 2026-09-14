@@ -92,8 +92,17 @@ export async function POST({ request, clientAddress }) {
   });
 
   const anyDelivered = Object.values(report).some((r) => r && r.ok);
-  // Для показа без ключей считаем заявку принятой, даже если каналы не настроены
-  // (skipped) — лид логируется в логах функций хостинга.
+  // Канал считается настроенным, если у него заданы ключи (нет пометки skipped).
+  const anyConfigured = Object.values(report).some((r) => r && !r.skipped);
+
+  if (!anyDelivered && anyConfigured) {
+    // Каналы настроены, но ни один не принял заявку. Раньше мы в этом случае
+    // отвечали «успешно», и заказ пропадал молча. Теперь честно сообщаем об ошибке:
+    // покупатель увидит запасные контакты, а не ложное подтверждение.
+    console.error('[order] ни один канал не принял заявку:', JSON.stringify(report), JSON.stringify(order));
+    return json({ error: 'Не удалось передать заявку. Напишите нам, пожалуйста, в мессенджер.', channels: report }, 502);
+  }
+
   if (!anyDelivered) {
     console.log('[order] заявка получена, активных каналов нет (демо-режим):', JSON.stringify(order));
   }
@@ -105,6 +114,19 @@ export async function POST({ request, clientAddress }) {
 async function sendToAmoCRM(order, leadTitle) {
   const { AMOCRM_SUBDOMAIN, AMOCRM_ACCESS_TOKEN } = process.env;
   if (!AMOCRM_SUBDOMAIN || !AMOCRM_ACCESS_TOKEN) return { ok: false, skipped: 'не настроен' };
+
+  // Значения переменных окружения легко испортить при вставке в панель хостинга:
+  // лишний пробел, перенос строки или случайная кириллица. В заголовок HTTP такие
+  // символы не помещаются, и fetch падает с невнятным TypeError про ByteString.
+  // Проверяем заранее и говорим человеческим языком, что именно поправить.
+  const token = String(AMOCRM_ACCESS_TOKEN).trim();
+  const sub = String(AMOCRM_SUBDOMAIN).trim();
+  if (!/^[\x21-\x7E]+$/.test(token)) {
+    throw new Error('переменная AMOCRM_ACCESS_TOKEN содержит посторонние символы (пробел, перенос строки или кириллицу) — впишите токен заново');
+  }
+  if (!/^[a-zA-Z0-9-]+$/.test(sub)) {
+    throw new Error('переменная AMOCRM_SUBDOMAIN содержит посторонние символы — должно быть только имя поддомена, например ekopremi1');
+  }
 
   const pipelineId = Number(process.env.AMOCRM_PIPELINE_ID) || undefined;
   const statusId = Number(process.env.AMOCRM_STATUS_ID) || undefined;
@@ -143,9 +165,9 @@ async function sendToAmoCRM(order, leadTitle) {
     },
   };
 
-  const res = await fetch(`https://${AMOCRM_SUBDOMAIN}.amocrm.ru/api/v4/leads/complex`, {
+  const res = await fetch(`https://${sub}.amocrm.ru/api/v4/leads/complex`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${AMOCRM_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify([lead]),
   });
   if (!res.ok) {
