@@ -1,0 +1,43 @@
+---
+// Видео-отзывы покупателей, перенесены со старого сайта. Ролики лежат на Rutube:
+// российская площадка, открывается у всех провайдеров. Чтобы не грузить три тяжёлых
+// плеера при открытии главной, сначала показываем обложку, а плеер подставляем по нажатию.
+import { videoReviews } from '../data/site.js';
+---
+<section id="reviews">
+  <div class="section-inner">
+    <div class="head">
+      <div class="lbl ey">Отзывы</div>
+      <h2>Что говорят <em>покупатели</em></h2>
+      <div class="rule"></div>
+    </div>
+    <div class="reviews-grid">
+      {videoReviews.map((r) => (
+        <figure class="review-card">
+          <button type="button" class="review-play" data-rutube={r.id} aria-label={`Смотреть: ${r.title}`}>
+            <img src={r.thumb} alt={r.title} loading="lazy" />
+            <span class="review-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+            <span class="review-dur">{r.duration}</span>
+          </button>
+          <figcaption>{r.title}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.review-play').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = `https://rutube.ru/play/embed/${btn.dataset.rutube}?autoplay=1`;
+      frame.title = btn.getAttribute('aria-label') || 'Видео-отзыв';
+      frame.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+      frame.allowFullscreen = true;
+      frame.className = 'review-frame';
+      btn.replaceWith(frame);
+    });
+  });
+</script>

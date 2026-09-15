@@ -44,3 +44,10 @@ export const analytics = {
   yandexMetrika: '99571167',
   topMailRu: '3605421',
 };
+
+// Видео-отзывы покупателей со старого сайта. Ролики на Rutube, обложки сохранены у нас.
+export const videoReviews = [
+  { id: 'f23b4d5a86ba747c1f50395a349ea7c0', title: 'Отзыв Ирины', duration: '1:35', thumb: '/img/review-irina.webp' },
+  { id: 'ce4c1338bd153033e2e654ef70343eee', title: 'Отзыв Екатерины', duration: '1:39', thumb: '/img/review-ekaterina.webp' },
+  { id: 'aa1d7e66599bf195d527900bed5327cd', title: 'Отзыв Надежды', duration: '1:43', thumb: '/img/review-nadezhda.webp' },
+];

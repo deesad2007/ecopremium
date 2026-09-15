@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Regalia from '../components/Regalia.astro';
 import ProductCard from '../components/ProductCard.astro';
+import VideoReviews from '../components/VideoReviews.astro';
 import data from '../data/products.json';
 
 // на главной — только масла; продукты питания живут в каталоге
@@ -57,6 +58,9 @@ const usp = [
       </div>
     </div>
   </section>
+
+  {/* ── VIDEO REVIEWS ── */}
+  <VideoReviews />
 
   {/* ── TECHNOLOGY ── */}
   <section class="craft" id="craft">
