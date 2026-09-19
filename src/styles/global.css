@@ -308,6 +308,9 @@ section { padding: 90px 7%; }
 .pd-claim { font-family: var(--serif); font-size: 19px; font-weight: 700; color: var(--kz-violet); margin-top: 12px; }
 .pd-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 .pd-note { margin-top: 26px; font-size: 13px; color: var(--ink); border-top: 1px solid #eadfc7; padding-top: 22px; line-height: 1.7; }
+.pd-vendor { margin-top: 12px; font-size: 13px; color: var(--ink); line-height: 1.7; opacity: .85; }
+.pd-vendor a { margin-left: 6px; text-decoration: underline; }
+.legal .sells { opacity: .8; }
 
 /* ── generic prose page ── */
 .page-hero { background: var(--hero-bg); color: var(--kz-green-lt); padding: 64px 7% 56px; text-align: center; }

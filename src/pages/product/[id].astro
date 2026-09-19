@@ -4,6 +4,7 @@ import Bottle from '../../components/Bottle.astro';
 import FoodPlaceholder from '../../components/FoodPlaceholder.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import data from '../../data/products.json';
+import { sellerFor } from '../../data/site.js';
 
 export function getStaticPaths() {
   return data.products.map((p) => ({ params: { id: p.id }, props: { product: p } }));
@@ -15,6 +16,7 @@ const base = variants[0] || { volume: '', price: product.price };
 const hasPhoto = image && !image.includes('...');
 const hasPrice = base.price != null && base.price !== '';
 const isFood = product.section === 'food';
+const vendor = sellerFor(product);
 // «может понравиться» — сначала из той же категории, затем из того же раздела
 const sameCat = data.products.filter((p) => p.id !== id && p.category === product.category);
 const sameSection = data.products.filter((p) => p.id !== id && p.section === product.section && p.category !== product.category);
@@ -145,7 +147,11 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
           {isFood
             ? 'Цену, фасовку и наличие менеджер подтвердит после заявки.'
             : 'Свежий отжим под заказ — давим в день отправки. Хранить в холодильнике в тёмной таре.'}
-          Бесплатная доставка от 10&nbsp;000&nbsp;₽. Оплата картой по согласованию после подтверждения заказа.
+          Бесплатная доставка от 10&nbsp;000&nbsp;₽.
+        </div>
+        <div class="pd-vendor">
+          Продавец товара: <b>{vendor.shortName}</b>. {vendor.payment}
+          <a href="/contacts#rekvizity">Реквизиты</a>
         </div>
       </div>
     </div>

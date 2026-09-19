@@ -2,7 +2,7 @@
 // Политика обработки персональных данных. Требуется по 152-ФЗ (на сайте есть форма
 // с именем, телефоном и почтой) и входит в проверочный список платёжных систем.
 import Base from '../layouts/Base.astro';
-import { contacts, seller } from '../data/site.js';
+import { contacts, company, selfEmployed } from '../data/site.js';
 
 // Клиент — самозанятый (НПД): ОГРН и юридического адреса у него нет,
 // есть ФИО и ИНН физлица. Заполнить и перенести файл обратно в src/pages/.
@@ -17,9 +17,12 @@ import { contacts, seller } from '../data/site.js';
     <div class="section-inner">
       <div class="legal">
         <h3>1. Оператор</h3>
-        <p>Оператором персональных данных является {seller.legalName || seller.name} — {seller.legalName ? `ОГРН ${seller.ogrn}` : seller.status},
-          ИНН {seller.inn}, {seller.region}.
-          Контакты для обращений: {contacts.email}, {contacts.phone}.</p>
+        <p>Оператор персональных данных и владелец сайта — {company.legalName},
+          ОГРН {company.ogrn}, ИНН {company.inn}, {company.region}.</p>
+        <p>Заказы на масла и жмых исполняет {selfEmployed.legalName} ({selfEmployed.status}){selfEmployed.inn ? `, ИНН ${selfEmployed.inn}` : ''}.
+          Ему передаются имя, телефон и адрес доставки покупателя — только для того, чтобы
+          собрать и отправить заказ.</p>
+        <p>Контакты для обращений по любым вопросам о данных: {contacts.email}, {contacts.phone}.</p>
 
         <h3>2. Какие данные мы собираем</h3>
         <p>При оформлении заявки на сайте мы получаем: имя, номер телефона, адрес электронной почты

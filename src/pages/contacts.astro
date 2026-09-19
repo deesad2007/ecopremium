@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { contacts, seller } from '../data/site.js';
+import { contacts, sellers, sellerLines } from '../data/site.js';
 ---
 <Base title="Контакты — EcoPremi" description="Связаться с EcoPremi: телефон, WhatsApp, Telegram, e-mail, ВКонтакте.">
   <section class="page-hero">
@@ -50,7 +50,7 @@ import { contacts, seller } from '../data/site.js';
   </section>
 
   {/* Реквизиты продавца — их проверяют платёжные системы при подключении. */}
-  <section>
+  <section id="rekvizity">
     <div class="section-inner">
       <div class="head">
         <div class="lbl ey">Реквизиты</div>
@@ -58,10 +58,15 @@ import { contacts, seller } from '../data/site.js';
         <div class="rule"></div>
       </div>
       <div class="legal">
-        <p><b>{seller.legalName || seller.name}</b><br />
-          {seller.legalName ? `ОГРН ${seller.ogrn}` : seller.status}<br />
-          ИНН {seller.inn}{seller.kpp ? `, КПП ${seller.kpp}` : ''}<br />
-          {seller.region}</p>
+        <p>На сайте два продавца: масла и жмых мы отжимаем сами, остальные продукты
+          поставляем от проверенных хозяйств. В зависимости от товара договор заключается
+          с одним из них, это указано в карточке товара.</p>
+        {sellers.map((s) => (
+          <p><b>{s.legalName}</b><br />
+            <span class="sells">Продаёт: {s.sells}</span><br />
+            {sellerLines(s).map((l) => <span>{l}<br /></span>)}
+            <span class="sells">{s.payment}</span></p>
+        ))}
         <p>Телефон: <a href={`tel:${contacts.phoneRaw}`}>{contacts.phone}</a><br />
           Электронная почта: <a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
         <p>Условия продажи — в <a href="/oferta">публичной оферте</a>.
