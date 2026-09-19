@@ -55,7 +55,11 @@ function buildReceipt(items) {
       sum: Number(money((Number(i.price) || 0) * (Number(i.qty) || 1))),
       payment_method: 'full_payment',
       payment_object: 'commodity',
-      tax: process.env.ROBOKASSA_VAT,
+      // Ставка НДС берётся из товара, если она там задана, иначе общая из переменной.
+      // На общей системе налогообложения у продуктов ставки разные: хлеб, мука, крупы
+      // и растительное масло идут по 10%, часть позиций по 20%. Пока у товаров ставка
+      // не проставлена, действует общая — её подтверждает бухгалтер.
+      tax: i.vat || process.env.ROBOKASSA_VAT,
     })),
   };
 }
@@ -67,6 +71,9 @@ function buildReceipt(items) {
 export function paymentUrl({ invId, items, description, email }) {
   const status = robokassaStatus();
   if (!status.ok) throw new Error(`Робокасса не настроена: ${status.reason}`);
+
+  const badVat = items.find((i) => i.vat && !VAT.includes(String(i.vat)));
+  if (badVat) throw new Error(`у товара «${badVat.name}» неверная ставка НДС: ${badVat.vat}`);
 
   const receipt = buildReceipt(items);
   const outSum = money(receipt.items.reduce((s, i) => s + i.sum, 0));

@@ -72,6 +72,8 @@ export async function POST({ request, clientAddress }) {
       name: p.volume ? `${product.name}, ${p.volume}` : product.name,
       price: p.price,
       qty,
+      // если у товара в каталоге проставлена своя ставка НДС — она победит общую
+      ...(product.vat ? { vat: product.vat } : {}),
     });
   }
 
