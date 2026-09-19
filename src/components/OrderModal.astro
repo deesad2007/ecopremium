@@ -1,6 +1,7 @@
 ---
 // Сквозная модалка заказа. Открывается любой кнопкой с атрибутом data-order
-// (опц. data-product="Название" data-price="390"). Шлёт заявку в Netlify-функцию.
+// (опц. data-product="Название" data-price="390" data-id="002").
+// Заявка уходит в /api/order, оплата картой — в /api/pay.
 ---
 <div class="modal-backdrop" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
   <div class="modal">
@@ -16,6 +17,7 @@
       </div>
       <form id="orderForm" novalidate>
         <input type="hidden" name="product" id="fProduct" />
+        <input type="hidden" name="productId" id="fProductId" />
         <input type="hidden" name="price" id="fPrice" />
         <input type="hidden" name="page" id="fPage" />
         {/* honeypot против спама */}
@@ -61,6 +63,10 @@
           <div class="pay-note" id="promoNote" hidden></div>
         </div>
         <div class="field">
+          <label for="fAddress">Адрес доставки</label>
+          <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Город, улица, дом, квартира" />
+        </div>
+        <div class="field">
           <label for="fComment">Комментарий</label>
           <textarea id="fComment" name="comment" placeholder="Город, адрес, пожелания"></textarea>
         </div>
@@ -71,9 +77,11 @@
             <a href="/policy" target="_blank" rel="noopener">политики обработки данных</a> и
             <a href="/oferta" target="_blank" rel="noopener">публичной оферты</a>.</span>
         </label>
+        <button type="button" class="btn btn-g" id="orderPay" style="width:100%" hidden>Оплатить картой</button>
         <button type="submit" class="btn btn-dark" id="orderSubmit" style="width:100%">Отправить заявку</button>
-        <p class="pay-note">Оплата банковской картой — по согласованию после подтверждения заказа.
-          Менеджер свяжется с вами, чтобы подтвердить заказ и способ оплаты.</p>
+        <p class="pay-note" id="payNote" hidden>Оплата картой через Робокассу. Чек придёт на почту сразу после оплаты.</p>
+        <p class="pay-note" id="askNote">Заявка ни к чему не обязывает: менеджер свяжется с вами,
+          подтвердит состав заказа и пришлёт способ оплаты.</p>
         <div class="form-msg" id="orderMsg" role="status"></div>
       </form>
     </div>
@@ -103,11 +111,13 @@
       : product;
   }
 
-  function openModal(product, price, volume, variantsRaw) {
+  function openModal(product, price, volume, variantsRaw, productId) {
     form.reset();
     msg.className = 'form-msg';
     document.getElementById('fProduct').value = product || '';
+    document.getElementById('fProductId').value = productId || '';
     document.getElementById('fPage').value = location.pathname;
+    refreshPayButton();
 
     let variants = [];
     try { variants = variantsRaw ? JSON.parse(variantsRaw) : []; } catch {}
@@ -148,7 +158,8 @@
         trigger.getAttribute('data-product'),
         trigger.getAttribute('data-price'),
         trigger.getAttribute('data-volume'),
-        trigger.getAttribute('data-variants')
+        trigger.getAttribute('data-variants'),
+        trigger.getAttribute('data-id')
       );
     }
     if (e.target.id === 'orderClose' || e.target === modal) closeModal();
@@ -180,6 +191,85 @@
     note.textContent = val
       ? 'Промокод сохранён в заявке — менеджер применит скидку при подтверждении.'
       : 'Введите промокод.';
+  });
+
+  // ── оплата картой ──
+  // Что оплачивать: либо корзина целиком, либо один товар с открытой карточки.
+  // На сервер уходят только id, объём и количество: цену там берут из каталога.
+  const payBtn = document.getElementById('orderPay');
+  const payNote = document.getElementById('payNote');
+  const askNote = document.getElementById('askNote');
+
+  function payableLines() {
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('ecopremium_cart') || '[]'); } catch {}
+    if (cart.length) {
+      return cart
+        .filter((i) => i.id && Number(i.price) > 0)
+        .map((i) => ({ id: i.id, volume: i.volume || '', qty: i.qty || 1 }));
+    }
+    const id = document.getElementById('fProductId').value;
+    const price = Number(document.getElementById('fPrice').value);
+    if (!id || !(price > 0)) return [];
+    return [{ id, volume: volField.hidden ? '' : volSelect.value, qty: 1 }];
+  }
+
+  function refreshPayButton() {
+    const can = payableLines().length > 0;
+    payBtn.hidden = !can;
+    payNote.hidden = !can;
+    askNote.hidden = can;
+  }
+
+  volSelect.addEventListener('change', refreshPayButton);
+
+  payBtn?.addEventListener('click', async () => {
+    msg.className = 'form-msg';
+    const name = form.name.value.trim();
+    const phone = form.phone.value.trim();
+    if (!name || !phone) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Пожалуйста, укажите имя и телефон — они нужны для доставки.';
+      return;
+    }
+    if (!form.consent.checked) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'Отметьте согласие с офертой и политикой обработки данных.';
+      return;
+    }
+    const items = payableLines();
+    if (!items.length) {
+      msg.className = 'form-msg err';
+      msg.textContent = 'У выбранных товаров нет цены на сайте — оформите заявку, менеджер посчитает стоимость.';
+      return;
+    }
+    payBtn.disabled = true;
+    const original = payBtn.textContent;
+    payBtn.textContent = 'Готовим счёт…';
+    try {
+      const res = await fetch('/api/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, phone,
+          email: form.email.value.trim(),
+          address: form.address.value.trim(),
+          delivery: form.delivery.value,
+          comment: form.comment.value.trim(),
+          page: location.pathname,
+          items,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(data.error || 'bad status ' + res.status);
+      if (window.ym) window.ym(Number(99571167), 'reachGoal', 'pay_start');
+      location.href = data.url;
+    } catch (err) {
+      msg.className = 'form-msg err';
+      msg.textContent = String(err.message || err);
+      payBtn.disabled = false;
+      payBtn.textContent = original;
+    }
   });
 
   form?.addEventListener('submit', async (e) => {

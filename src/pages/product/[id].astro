@@ -133,7 +133,7 @@ const footBlocks = blocks.filter((b) => ['meta', 'bonus', 'claim'].includes(b.ty
         <div class="pd-actions">
           {hasPrice ? (
             <>
-              <button class="btn btn-g" id="pdOrder" data-order data-product={name} data-price={base.price}
+              <button class="btn btn-g" id="pdOrder" data-order data-id={id} data-product={name} data-price={base.price}
                 data-volume={base.volume} data-variants={JSON.stringify(variants)}>Заказать</button>
               <button type="button" class="btn btn-dark js-add-cart"
                 data-id={id} data-name={name} data-image={hasPhoto ? image : ''}>В корзину</button>

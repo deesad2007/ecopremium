@@ -1,0 +1,32 @@
+---
+// Куда Робокасса возвращает покупателя после успешной оплаты.
+// Важно: сам факт попадания сюда не доказывает оплату, деньги подтверждает
+// только уведомление на /api/robokassa-result. Поэтому пишем аккуратно.
+import Base from '../../layouts/Base.astro';
+import { contacts } from '../../data/site.js';
+
+export const prerender = false;
+
+const invId = Astro.url.searchParams.get('InvId') || '';
+const sum = Astro.url.searchParams.get('OutSum') || '';
+---
+<Base title="Оплата прошла — EcoPremi" description="Спасибо за заказ в EcoPremi.">
+  <section class="page-hero">
+    <div class="ey lbl">Заказ оплачен</div>
+    <h1>Спасибо! Оплата <em>получена</em></h1>
+  </section>
+  <section>
+    <div class="section-inner">
+      <div class="legal">
+        {invId && <p>Номер счёта: <b>{invId}</b>{sum && <span>, сумма {sum} ₽</span>}.</p>}
+        <p>Чек придёт на электронную почту, которую вы указали при оплате. Менеджер свяжется
+          с вами, чтобы подтвердить состав заказа и согласовать доставку.</p>
+        <p>Если что-то пошло не так, напишите нам:
+          <a href={contacts.whatsapp} target="_blank" rel="noopener">WhatsApp</a>,
+          <a href={contacts.telegram} target="_blank" rel="noopener">Telegram</a>,
+          или позвоните <a href={`tel:${contacts.phoneRaw}`}>{contacts.phone}</a>.</p>
+        <p><a href="/catalog" class="btn btn-g">Вернуться в каталог</a></p>
+      </div>
+    </div>
+  </section>
+</Base>

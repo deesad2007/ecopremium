@@ -1,0 +1,28 @@
+---
+// Куда Робокасса возвращает покупателя, если оплата не прошла или он её отменил.
+import Base from '../../layouts/Base.astro';
+import { contacts } from '../../data/site.js';
+
+export const prerender = false;
+
+const invId = Astro.url.searchParams.get('InvId') || '';
+---
+<Base title="Оплата не прошла — EcoPremi" description="Оплата не завершена. Заказ сохранён, менеджер поможет оформить.">
+  <section class="page-hero">
+    <div class="ey lbl">Оплата не завершена</div>
+    <h1>Платёж <em>не прошёл</em></h1>
+  </section>
+  <section>
+    <div class="section-inner">
+      <div class="legal">
+        <p>Деньги не списаны. Заказ {invId && <span>№ <b>{invId}</b> </span>}сохранён у нас,
+          менеджер свяжется с вами и поможет оформить оплату другим способом.</p>
+        <p>Можно попробовать оплатить ещё раз из корзины или написать нам:
+          <a href={contacts.whatsapp} target="_blank" rel="noopener">WhatsApp</a>,
+          <a href={contacts.telegram} target="_blank" rel="noopener">Telegram</a>,
+          телефон <a href={`tel:${contacts.phoneRaw}`}>{contacts.phone}</a>.</p>
+        <p><a href="/catalog" class="btn btn-g">Вернуться в каталог</a></p>
+      </div>
+    </div>
+  </section>
+</Base>
