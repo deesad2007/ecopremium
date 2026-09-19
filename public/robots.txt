@@ -1,3 +1,6 @@
 User-agent: *
 Allow: /
+# Служебные адреса оплаты в поиске не нужны
+Disallow: /pay/
+Disallow: /api/
 Sitemap: https://ekopremium.ru/sitemap.xml
