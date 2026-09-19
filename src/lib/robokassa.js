@@ -22,7 +22,10 @@ const md5 = (s) => crypto.createHash('md5').update(s, 'utf8').digest('hex');
 // Допустимые значения берём из документации, чтобы опечатка в панели хостинга
 // не превратилась в чек с неверной системой налогообложения.
 const SNO = ['osn', 'usn_income', 'usn_income_outcome', 'esn', 'patent'];
-const VAT = ['none', 'vat0', 'vat10', 'vat110', 'vat20', 'vat120'];
+// Полный актуальный список из документации Робокассы (раздел «Фискализация»).
+// С 2026 года основная ставка 22%, поэтому vat22 и vat122 обязательны в списке.
+const VAT = ['none', 'vat0', 'vat5', 'vat7', 'vat10', 'vat20', 'vat22',
+             'vat105', 'vat107', 'vat110', 'vat120', 'vat122'];
 
 export function robokassaStatus() {
   const { ROBOKASSA_LOGIN, ROBOKASSA_PASS1, ROBOKASSA_PASS2, ROBOKASSA_SNO, ROBOKASSA_VAT } = process.env;
