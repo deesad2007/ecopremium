@@ -74,9 +74,13 @@ export async function POST({ request, clientAddress }) {
     ? { code: Number(process.env.CDEK_FROM_CODE) }
     : { postal_code: String(process.env.CDEK_FROM_POSTAL || '117405') };
 
+  // СДЭК ждёт валюту числовым кодом. Виджет так и шлёт, но если придёт строка
+  // вроде «RUB», лучше не передавать её вовсе, чем уронить весь расчёт.
+  const currency = Number(body.currency);
+
   const payload = {
     type: 1,
-    currency: body.currency,
+    ...(Number.isFinite(currency) && currency > 0 ? { currency } : {}),
     lang: body.lang,
     from_location: from,
     to_location: body.to_location,
