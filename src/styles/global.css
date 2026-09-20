@@ -564,3 +564,10 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
 .review-dur { position: absolute; right: 10px; bottom: 10px; background: rgba(0,0,0,.72); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 3px; }
 .review-card figcaption { margin-top: 12px; font-family: var(--serif); font-size: 19px; font-weight: 700; color: var(--forest); }
 @media (max-width: 900px) { .reviews-grid { grid-template-columns: 1fr; gap: 26px; } }
+
+.cdek-opts { display: grid; gap: 8px; margin-top: 10px; }
+.cdek-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #eadfc7; border-radius: 10px; cursor: pointer; font-size: 14px; }
+.cdek-opt:has(input:checked) { border-color: var(--gold, #b8925a); background: #fbf7ef; }
+.cdek-opt span { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.cdek-opt b { font-size: 15px; }
+.cdek-opt i { font-style: normal; opacity: .65; font-size: 13px; }

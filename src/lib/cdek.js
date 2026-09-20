@@ -19,7 +19,9 @@
 const PROD = 'https://api.cdek.ru/v2';
 const TEST = 'https://api.edu.cdek.ru/v2';
 
-const base = () => (String(process.env.CDEK_TEST) === '1' ? TEST : PROD);
+// CDEK_API_URL перекрывает адрес: нужен, чтобы прогонять расчёт на подставном
+// сервере в проверках, не трогая настоящий СДЭК.
+const base = () => process.env.CDEK_API_URL || (String(process.env.CDEK_TEST) === '1' ? TEST : PROD);
 
 export function cdekStatus() {
   const { CDEK_CLIENT_ID, CDEK_CLIENT_SECRET } = process.env;

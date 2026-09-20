@@ -62,7 +62,8 @@ function buildReceipt(items) {
       quantity: Number(i.qty) || 1,
       sum: Number(money((Number(i.price) || 0) * (Number(i.qty) || 1))),
       payment_method: 'full_payment',
-      payment_object: 'commodity',
+      // Товар или услуга: доставка в чеке обязана быть услугой, а не товаром.
+      payment_object: i.object || 'commodity',
       // Ставка НДС берётся из товара, если она там задана, иначе общая из переменной.
       // На общей системе налогообложения у продуктов ставки разные: хлеб, мука, крупы
       // и растительное масло идут по 10%, часть позиций по 20%. Пока у товаров ставка

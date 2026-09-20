@@ -11,6 +11,7 @@
 
 import data from '../../data/products.json';
 import { newInvId, paymentUrl, robokassaStatus } from '../../lib/robokassa.js';
+import { deliveryOptions, cdekStatus } from '../../lib/cdek.js';
 import { notifyOrder } from '../../lib/notify.js';
 import { json, cut, makeRateLimiter } from '../../lib/http.js';
 
@@ -74,6 +75,8 @@ export async function POST({ request, clientAddress }) {
       qty,
       // если у товара в каталоге проставлена своя ставка НДС — она победит общую
       ...(product.vat ? { vat: product.vat } : {}),
+      // вес нужен расчёту доставки; пока его нет в каталоге, СДЭК возьмёт значение по умолчанию
+      weight: weightOf(product, line.volume),
     });
   }
 
@@ -82,6 +85,37 @@ export async function POST({ request, clientAddress }) {
       error: 'У выбранных товаров нет цены на сайте. Оформите заявку, менеджер посчитает стоимость.',
       skipped,
     }, 400);
+  }
+
+  // ── доставка ──
+  // Цену доставки пересчитываем на сервере, как и цены товаров: то, что
+  // прислал браузер, служит только указанием «куда и каким способом».
+  // delivery остаётся текстом для CRM, а выбор СДЭКа приходит отдельно в cdek
+  const wanted = body.cdek && String(body.cdek.kind || '');
+  if ((wanted === 'pvz' || wanted === 'courier') && cdekStatus().ok) {
+    try {
+      const calc = await deliveryOptions({
+        toPostal: cut(body.cdek.postal, 10).replace(/\D/g, ''),
+        toCity: cut(body.cdek.city, 100),
+        items: items.map((i) => ({ qty: i.qty, weight: i.weight })),
+      });
+      const opt = calc.options.find((o) => o.kind === wanted);
+      if (opt) {
+        items.push({
+          name: `Доставка СДЭК, ${wanted === 'pvz' ? 'пункт выдачи' : 'курьер до двери'}`,
+          price: opt.price,
+          qty: 1,
+          object: 'service',
+          // Доставка — услуга, её ставка может отличаться от ставки на продукты.
+          // Если переменная не задана, действует общая.
+          ...(process.env.ROBOKASSA_VAT_DELIVERY ? { vat: process.env.ROBOKASSA_VAT_DELIVERY } : {}),
+        });
+      }
+    } catch (err) {
+      // Доставку не посчитали — счёт всё равно выставляем на товары,
+      // менеджер согласует доставку отдельно. Молча терять заказ нельзя.
+      console.error('[pay] доставку посчитать не удалось:', err);
+    }
   }
 
   const invId = newInvId();
@@ -119,4 +153,10 @@ export async function POST({ request, clientAddress }) {
     .catch((err) => console.error('[pay] каналы не приняли счёт', invId, err));
 
   return json({ ok: true, url: pay.url, invId, sum: pay.outSum, skipped });
+}
+
+// Вес в граммах: сначала у выбранной фасовки, потом у товара целиком.
+function weightOf(product, volume) {
+  const v = (product.variants || []).find((x) => String(x.volume) === String(volume));
+  return Number(v?.weight) || Number(product.weight) || null;
 }

@@ -54,6 +54,15 @@
             <option>Самовывоз с маслодельни</option>
           </select>
         </div>
+        <div class="field" id="cdekBox" hidden>
+          <label for="fCity">Город доставки</label>
+          <div class="promo-row">
+            <input type="text" id="fCity" name="city" autocomplete="address-level2" placeholder="Например, Казань" />
+            <button type="button" id="calcBtn">Рассчитать</button>
+          </div>
+          <div class="pay-note" id="cdekNote" hidden></div>
+          <div class="cdek-opts" id="cdekOpts" hidden></div>
+        </div>
         <div class="field">
           <label for="fPromo">Промокод</label>
           <div class="promo-row">
@@ -219,9 +228,72 @@
     payBtn.hidden = !can;
     payNote.hidden = !can;
     askNote.hidden = can;
+    cdekBox.hidden = !can;
+    if (!can) resetDelivery();
   }
 
   volSelect.addEventListener('change', refreshPayButton);
+
+  // ── расчёт доставки СДЭК ──
+  // Отправляем только город и состав корзины. Цену доставки сервер считает сам
+  // и пересчитывает заново при создании счёта: из браузера цена не принимается.
+  const cdekBox = document.getElementById('cdekBox');
+  const cdekNote = document.getElementById('cdekNote');
+  const cdekOpts = document.getElementById('cdekOpts');
+  const calcBtn = document.getElementById('calcBtn');
+  let chosenDelivery = null;
+
+  function resetDelivery() {
+    chosenDelivery = null;
+    cdekOpts.hidden = true;
+    cdekOpts.innerHTML = '';
+    cdekNote.hidden = true;
+  }
+
+  calcBtn?.addEventListener('click', async () => {
+    const city = document.getElementById('fCity').value.trim();
+    const items = payableLines();
+    resetDelivery();
+    if (!city) { cdekNote.hidden = false; cdekNote.textContent = 'Укажите город.'; return; }
+    if (!items.length) { cdekNote.hidden = false; cdekNote.textContent = 'Сначала добавьте товары в корзину.'; return; }
+
+    calcBtn.disabled = true;
+    const was = calcBtn.textContent;
+    calcBtn.textContent = 'Считаем…';
+    try {
+      const res = await fetch('/api/delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city, items }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.options?.length) throw new Error(data.error || 'Не удалось рассчитать доставку');
+
+      cdekOpts.hidden = false;
+      cdekOpts.innerHTML = data.options.map((o, i) => `
+        <label class="cdek-opt">
+          <input type="radio" name="cdekKind" value="${o.kind}" ${i === 0 ? 'checked' : ''} />
+          <span>${o.kind === 'pvz' ? 'Пункт выдачи СДЭК' : 'Курьером до двери'}
+            <b>${nbsp(o.price)} ₽</b>
+            <i>${o.daysMin}–${o.daysMax} дн.</i></span>
+        </label>`).join('');
+      chosenDelivery = { kind: data.options[0].kind, city };
+      cdekOpts.addEventListener('change', (e) => {
+        if (e.target.name === 'cdekKind') chosenDelivery = { kind: e.target.value, city };
+      });
+
+      cdekNote.hidden = false;
+      cdekNote.textContent = data.approximate
+        ? 'Расчёт предварительный: точный вес посылки менеджер подтвердит при сборке заказа.'
+        : `Вес посылки ${(data.weightGrams / 1000).toFixed(1)} кг.`;
+    } catch (err) {
+      cdekNote.hidden = false;
+      cdekNote.textContent = String(err.message || err);
+    } finally {
+      calcBtn.disabled = false;
+      calcBtn.textContent = was;
+    }
+  });
 
   payBtn?.addEventListener('click', async () => {
     msg.className = 'form-msg';
@@ -258,6 +330,7 @@
           comment: form.comment.value.trim(),
           page: location.pathname,
           items,
+          ...(chosenDelivery ? { cdek: chosenDelivery } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
