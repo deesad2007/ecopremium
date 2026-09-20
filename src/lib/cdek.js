@@ -150,29 +150,29 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
   const data = await call('/calculator/tarifflist', { method: 'POST', body: payload });
   const list = Array.isArray(data.tariff_codes) ? data.tariff_codes : [];
 
-  // В ответе СДЭКа режим доставки: 1 дверь-дверь, 2 дверь-склад,
-  // 3 склад-дверь, 4 склад-склад, 6 склад-постамат, 7 дверь-постамат.
-  //
-  // Первое слово — как посылку забирают У НАС. «Дверь» означает выезд курьера
-  // к отправителю, и за выезд в Дивеево СДЭК берёт крупную фиксированную
-  // надбавку: доставка в соседний Арзамас выходила дороже, чем во Владивосток.
-  // По умолчанию считаем, что посылки сдаются в отделении СДЭК.
+  // Числовой delivery_mode из ответа СДЭКа оказался ненадёжным: при отборе
+  // «только со склада» в него проходил тариф «Посылка дверь-постамат».
+  // Поэтому разбираем название тарифа, там способ написан словами:
+  // «Посылка склад-дверь», «Экспресс дверь-постамат» и так далее.
+  // Первое слово — как забирают у нас, второе — как получает покупатель.
+  const parseRoute = (name) => {
+    const m = String(name || '').match(/(дверь|склад|постамат)\s*-\s*(дверь|склад|постамат)/i);
+    return m ? { from: m[1].toLowerCase(), to: m[2].toLowerCase() } : null;
+  };
+
+  const withRoute = list.map((t) => ({ ...t, route: parseRoute(t.tariff_name) }));
   const fromDoor = String(process.env.CDEK_SHIP_FROM || 'warehouse') === 'door';
-  const doorModes = fromDoor ? [1] : [3];
-  const pointModes = fromDoor ? [2, 7] : [4, 6];
+  const wantFrom = fromDoor ? 'дверь' : 'склад';
 
-  let toDoor = list.filter((t) => doorModes.includes(t.delivery_mode));
-  let toPoint = list.filter((t) => pointModes.includes(t.delivery_mode));
+  const suitable = withRoute.filter((t) => t.route && t.route.from === wantFrom);
+  // Если нужным способом СДЭК ничего не предлагает, показываем что есть:
+  // пустой экран вместо цены хуже, чем неудобный тариф.
+  const fallback = suitable.length === 0 && withRoute.length > 0;
+  const pool = fallback ? withRoute.filter((t) => t.route) : suitable;
 
-  // Если при выбранном способе отправки СДЭК не предлагает ничего (так бывает
-  // для небольших городов), лучше показать хоть какие-то варианты, чем пустой
-  // экран. Помечаем такой ответ, чтобы было видно в логе и в ответе.
-  let fallback = false;
-  if (!toDoor.length && !toPoint.length && list.length) {
-    fallback = true;
-    toDoor = list.filter((t) => [1, 3].includes(t.delivery_mode));
-    toPoint = list.filter((t) => [2, 4, 6, 7].includes(t.delivery_mode));
-  }
+  const toDoor = pool.filter((t) => t.route.to === 'дверь');
+  const toPoint = pool.filter((t) => t.route.to !== 'дверь');
+
   const cheapest = (arr) => arr.slice().sort((a, b) => a.delivery_sum - b.delivery_sum)[0] || null;
 
   const shape = (t, kind) => t && {
@@ -191,6 +191,8 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
     shipFrom: fromDoor ? 'door' : 'warehouse',
     ...(fallback ? { fallback: true } : {}),
     tariffsOffered: list.length,
+    // полный список нужен, чтобы разбирать расхождения не вслепую
+    all: withRoute.map((t) => ({ code: t.tariff_code, mode: t.delivery_mode, name: t.tariff_name, price: Math.round(t.delivery_sum) })),
     options: [shape(cheapest(toPoint), 'pvz'), shape(cheapest(toDoor), 'courier')].filter(Boolean),
   };
 }
