@@ -1,4 +1,8 @@
 ---
+// Ключ Яндекс.Карт для виджета ПВЗ. Встроенный в виджет ключ по умолчанию
+// недействителен: геокодер отвечает 403 «Invalid api key», и карта остаётся
+// пустой. Поэтому без своего ключа кнопку карты не показываем вовсе.
+const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
 // Сквозная модалка заказа. Открывается любой кнопкой с атрибутом data-order
 // (опц. data-product="Название" data-price="390" data-id="002").
 // Заявка уходит в /api/order, оплата картой — в /api/pay.
@@ -59,7 +63,7 @@
           <button type="button" class="btn btn-dark" id="cdekMapBtn" style="width:100%">Выбрать пункт выдачи на карте</button>
           <div class="pay-note" id="cdekPicked" hidden></div>
         </div>
-        <div id="cdek-map" style="display:none"></div>
+        <div id="cdek-map" class="cdek-map" hidden data-maps-key={mapsKey}></div>
         <div class="field" id="cdekBox" hidden>
           <label for="fCity">Город доставки</label>
           <div class="promo-row">
@@ -238,9 +242,11 @@
     payBtn.hidden = !can;
     payNote.hidden = !can;
     askNote.hidden = can;
-    // По умолчанию предлагаем карту, поле города остаётся запасным вариантом.
-    widgetBox.hidden = !can;
-    cdekBox.hidden = true;
+    // Карту предлагаем, только если есть рабочий ключ Яндекса. Без него
+    // виджет открывается пустым, поэтому показываем проверенный способ с городом.
+    const mapsReady = Boolean(mapBox?.dataset.mapsKey);
+    widgetBox.hidden = !can || !mapsReady;
+    cdekBox.hidden = !can || mapsReady;
     if (!can) { resetDelivery(); picked.hidden = true; }
   }
 
@@ -319,8 +325,27 @@
   const widgetBox = document.getElementById('cdekWidgetBox');
   const mapBtn = document.getElementById('cdekMapBtn');
   const picked = document.getElementById('cdekPicked');
+  const mapBox = document.getElementById('cdek-map');
   let widget = null;
   let widgetLoading = null;
+
+  // Виджет рисует себя внутри контейнера и своей кнопкой его не прячет,
+  // поэтому закрываем сами: по Escape и по клику мимо карты.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !mapBox.hidden) mapBox.hidden = true;
+  });
+  mapBox?.addEventListener('click', (e) => {
+    if (e.target === mapBox) mapBox.hidden = true;
+  });
+
+  // Виджет сообщает о своих сбоях необработанным промисом. Ловим и уходим
+  // на запасной путь, чтобы покупатель не остался перед пустой картой.
+  window.addEventListener('unhandledrejection', (e) => {
+    const msg = String(e.reason?.message || e.reason || '');
+    if (!msg.includes('CDEK')) return;
+    mapBox.hidden = true;
+    fallbackToCity('Карта временно недоступна. Укажите город, посчитаем доставку списком.');
+  });
 
   function loadWidgetScript() {
     if (window.CDEKWidget) return Promise.resolve(true);
@@ -364,6 +389,12 @@
       if (!widget) {
         widget = new window.CDEKWidget({
           from: 'Москва',
+          // Обязательный параметр: без него виджет падает с исключением
+          // «defaultLocation is a required field».
+          apiKey: mapBox.dataset.mapsKey,
+          defaultLocation: 'Москва',
+          // root по умолчанию у виджета называется так же, поэтому он всё равно
+          // подхватит наш контейнер. Указываем явно, чтобы это было видно.
           root: 'cdek-map',
           popup: true,
           servicePath: '/api/cdek-widget',
@@ -382,6 +413,7 @@
               kind: String(type).includes('door') ? 'courier' : 'pvz',
               city, pointCode: code, pointAddress: addr,
             };
+            mapBox.hidden = true;
             picked.hidden = false;
             picked.textContent = addr
               ? `Выбрано: ${addr}${price ? `, доставка ${price} ₽` : ''}`
@@ -391,6 +423,7 @@
       } else {
         widget.updateParcels?.(parcels());
       }
+      mapBox.hidden = false;
       widget.open();
     } catch (err) {
       fallbackToCity('Карта недоступна. Укажите город, посчитаем доставку списком.');
