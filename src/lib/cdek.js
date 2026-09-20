@@ -64,6 +64,12 @@ async function token() {
   return cached.token;
 }
 
+// Низкоуровневый вызов открыт наружу: через него работает прокси для виджета
+// ПВЗ. Виджет ходит только на наш сервер, ключи СДЭКа в браузер не попадают.
+export async function cdekCall(path, opts) {
+  return call(path, opts);
+}
+
 async function call(path, { method = 'GET', body, query } = {}) {
   const url = new URL(base() + path);
   if (query) for (const [k, v] of Object.entries(query)) if (v != null) url.searchParams.set(k, String(v));
