@@ -6,7 +6,8 @@
 //   ROBOKASSA_LOGIN    — идентификатор магазина
 //   ROBOKASSA_PASS1    — пароль №1, им подписывается запрос на оплату
 //   ROBOKASSA_PASS2    — пароль №2, им проверяется уведомление об оплате
-//   ROBOKASSA_SNO      — система налогообложения ООО для чека
+//   ROBOKASSA_SNO      — система налогообложения для чека (необязательна:
+//                        без неё берётся та, что указана в кабинете Робокассы)
 //   ROBOKASSA_VAT      — ставка НДС для позиций чека
 //   ROBOKASSA_IS_TEST  — 1, пока идёт тестирование
 //
@@ -32,8 +33,11 @@ export function robokassaStatus() {
   if (!ROBOKASSA_LOGIN || !ROBOKASSA_PASS1 || !ROBOKASSA_PASS2) {
     return { ok: false, reason: 'не заданы ROBOKASSA_LOGIN, ROBOKASSA_PASS1 и ROBOKASSA_PASS2' };
   }
-  if (!SNO.includes(String(ROBOKASSA_SNO))) {
-    return { ok: false, reason: `ROBOKASSA_SNO должна быть одной из: ${SNO.join(', ')}` };
+  // Система налогообложения необязательна: если её не передать, Робокасса подставит
+  // ту, что указана в личном кабинете магазина. Проверяем, только если задана,
+  // чтобы опечатка не уехала в чек.
+  if (ROBOKASSA_SNO && !SNO.includes(String(ROBOKASSA_SNO))) {
+    return { ok: false, reason: `ROBOKASSA_SNO должна быть пустой или одной из: ${SNO.join(', ')}` };
   }
   if (!VAT.includes(String(ROBOKASSA_VAT))) {
     return { ok: false, reason: `ROBOKASSA_VAT должна быть одной из: ${VAT.join(', ')}` };
@@ -51,7 +55,8 @@ const money = (n) => Number(n).toFixed(2);
 
 function buildReceipt(items) {
   return {
-    sno: process.env.ROBOKASSA_SNO,
+    // Пустую СНО не передаём вовсе: пусть действует значение из кабинета Робокассы.
+    ...(process.env.ROBOKASSA_SNO ? { sno: process.env.ROBOKASSA_SNO } : {}),
     items: items.map((i) => ({
       name: String(i.name).slice(0, 128),
       quantity: Number(i.qty) || 1,
