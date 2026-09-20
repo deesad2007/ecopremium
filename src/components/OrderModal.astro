@@ -62,6 +62,10 @@
           </div>
           <div class="pay-note" id="cdekNote" hidden></div>
           <div class="cdek-opts" id="cdekOpts" hidden></div>
+          <div class="field" id="pvzField" hidden style="margin-top:10px">
+            <label for="fPvz">Пункт выдачи</label>
+            <select id="fPvz"></select>
+          </div>
         </div>
         <div class="field">
           <label for="fPromo">Промокод</label>
@@ -248,6 +252,7 @@
     cdekOpts.hidden = true;
     cdekOpts.innerHTML = '';
     cdekNote.hidden = true;
+    document.getElementById('pvzField').hidden = true;
   }
 
   calcBtn?.addEventListener('click', async () => {
@@ -279,8 +284,11 @@
         </label>`).join('');
       chosenDelivery = { kind: data.options[0].kind, city };
       cdekOpts.addEventListener('change', (e) => {
-        if (e.target.name === 'cdekKind') chosenDelivery = { kind: e.target.value, city };
+        if (e.target.name !== 'cdekKind') return;
+        chosenDelivery = { kind: e.target.value, city };
+        togglePvz();
       });
+      togglePvz();
 
       cdekNote.hidden = false;
       cdekNote.textContent = data.approximate
@@ -294,6 +302,47 @@
       calcBtn.textContent = was;
     }
   });
+
+  // ── конкретный пункт выдачи ──
+  // Список приходит от нашего сервера, он же ходит в СДЭК. Ключи в браузер не попадают.
+  const pvzField = document.getElementById('pvzField');
+  const pvzSelect = document.getElementById('fPvz');
+  let pvzLoadedFor = '';
+
+  async function togglePvz() {
+    const isPvz = chosenDelivery?.kind === 'pvz';
+    pvzField.hidden = !isPvz;
+    if (!isPvz) return;
+
+    const city = chosenDelivery.city;
+    if (pvzLoadedFor === city) { applyPvz(); return; }
+
+    pvzSelect.innerHTML = '<option>Загружаем пункты…</option>';
+    try {
+      const res = await fetch('/api/delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pointsFor: city }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.points?.length) throw new Error(data.error || 'Пункты выдачи не найдены');
+      pvzSelect.innerHTML = data.points
+        .map((p) => `<option value="${p.code}" data-address="${(p.address || '').replace(/"/g, '&quot;')}">${p.address || p.name}${p.workTime ? ' · ' + p.workTime : ''}</option>`)
+        .join('');
+      pvzLoadedFor = city;
+      applyPvz();
+    } catch (err) {
+      pvzSelect.innerHTML = `<option>${String(err.message || err)}</option>`;
+    }
+  }
+
+  function applyPvz() {
+    const opt = pvzSelect.selectedOptions[0];
+    if (!opt || !chosenDelivery) return;
+    chosenDelivery.pointCode = opt.value;
+    chosenDelivery.pointAddress = opt.dataset.address || opt.textContent;
+  }
+  pvzSelect?.addEventListener('change', applyPvz);
 
   payBtn?.addEventListener('click', async () => {
     msg.className = 'form-msg';

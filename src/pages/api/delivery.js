@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import data from '../../data/products.json';
-import { deliveryOptions, findCities, cdekStatus } from '../../lib/cdek.js';
+import { deliveryOptions, deliveryPoints, findCities, cdekStatus } from '../../lib/cdek.js';
 import { json, cut, makeRateLimiter } from '../../lib/http.js';
 
 export const prerender = false;
@@ -46,6 +46,20 @@ export async function POST({ request, clientAddress }) {
     } catch (err) {
       console.error('[delivery] поиск города:', err);
       return json({ error: 'Не удалось получить список городов' }, 502);
+    }
+  }
+
+  // пункты выдачи в городе: сначала находим код города, затем его ПВЗ
+  const pointsFor = cut(body.pointsFor, 100);
+  if (pointsFor) {
+    try {
+      const cities = await findCities(pointsFor, 1);
+      if (!cities.length) return json({ error: 'Город не найден' }, 404);
+      const points = await deliveryPoints({ cityCode: cities[0].code });
+      return json({ ok: true, city: cities[0].city, points });
+    } catch (err) {
+      console.error('[delivery] пункты выдачи:', err);
+      return json({ error: 'Не удалось получить список пунктов выдачи' }, 502);
     }
   }
 

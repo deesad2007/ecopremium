@@ -132,11 +132,15 @@ export async function POST({ request, clientAddress }) {
     return json({ error: 'Не удалось создать счёт. Оформите заявку, и менеджер пришлёт счёт вручную.' }, 502);
   }
 
+  // выбранный пункт выдачи дописываем к адресу: менеджеру нужен именно он
+  const pickup = cut(body.cdek?.pointAddress, 300);
+  const pickupCode = cut(body.cdek?.pointCode, 40);
+
   const order = {
     name,
     phone,
     email,
-    address,
+    address: pickup ? `Пункт выдачи СДЭК ${pickupCode}: ${pickup}` : address,
     delivery: cut(body.delivery, 80),
     comment: cut(body.comment, 2000),
     composition: items.map((i) => `${i.name} × ${i.qty}`).join('; '),
@@ -149,7 +153,14 @@ export async function POST({ request, clientAddress }) {
   // Не ждём CRM дольше необходимого: покупателя нельзя держать перед оплатой.
   // Ошибку канала логируем, но ссылку на оплату всё равно отдаём.
   notifyOrder(order, `Счёт ${invId} — ожидает оплаты`, ['ожидает оплаты'])
-    .then((report) => console.log('[pay] счёт создан', invId, JSON.stringify(report)))
+    .then((report) => {
+      console.log('[pay] счёт создан', invId, JSON.stringify(report));
+      // Когда каналы не настроены, заявка иначе нигде не видна: печатаем состав,
+      // чтобы счёт можно было восстановить по логу. Так же поступает /api/order.
+      if (!Object.values(report).some((r) => r && r.ok)) {
+        console.log('[pay] каналы не настроены, состав счёта:', JSON.stringify(order));
+      }
+    })
     .catch((err) => console.error('[pay] каналы не приняли счёт', invId, err));
 
   return json({ ok: true, url: pay.url, invId, sum: pay.outSum, skipped });
