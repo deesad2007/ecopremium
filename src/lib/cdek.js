@@ -161,8 +161,18 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
   const doorModes = fromDoor ? [1] : [3];
   const pointModes = fromDoor ? [2, 7] : [4, 6];
 
-  const toDoor = list.filter((t) => doorModes.includes(t.delivery_mode));
-  const toPoint = list.filter((t) => pointModes.includes(t.delivery_mode));
+  let toDoor = list.filter((t) => doorModes.includes(t.delivery_mode));
+  let toPoint = list.filter((t) => pointModes.includes(t.delivery_mode));
+
+  // Если при выбранном способе отправки СДЭК не предлагает ничего (так бывает
+  // для небольших городов), лучше показать хоть какие-то варианты, чем пустой
+  // экран. Помечаем такой ответ, чтобы было видно в логе и в ответе.
+  let fallback = false;
+  if (!toDoor.length && !toPoint.length && list.length) {
+    fallback = true;
+    toDoor = list.filter((t) => [1, 3].includes(t.delivery_mode));
+    toPoint = list.filter((t) => [2, 4, 6, 7].includes(t.delivery_mode));
+  }
   const cheapest = (arr) => arr.slice().sort((a, b) => a.delivery_sum - b.delivery_sum)[0] || null;
 
   const shape = (t, kind) => t && {
@@ -177,6 +187,10 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
   return {
     weightGrams: grams,
     approximate,
+    // shipFrom видно в ответе: иначе снаружи не отличить настройку от бага
+    shipFrom: fromDoor ? 'door' : 'warehouse',
+    ...(fallback ? { fallback: true } : {}),
+    tariffsOffered: list.length,
     options: [shape(cheapest(toPoint), 'pvz'), shape(cheapest(toDoor), 'courier')].filter(Boolean),
   };
 }
