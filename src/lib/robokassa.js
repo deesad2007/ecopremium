@@ -88,16 +88,23 @@ export function paymentUrl({ invId, items, description, email }) {
   const outSum = money(receipt.items.reduce((s, i) => s + i.sum, 0));
   if (Number(outSum) <= 0) throw new Error('Сумма заказа равна нулю');
 
-  // ВАЖНО: чек участвует в подписи ровно в том виде, в каком уходит в запросе,
-  // то есть URL-кодированным. Это место чаще всего ломается при интеграции,
-  // проверяем тестовым платежом перед боем.
+  // Документация Робокассы противоречит сама себе. Раздел «Сборка подписи»:
+  // «Receipt — фискальные данные в минимизированном JSON UTF-8». Раздел
+  // «Фискализация»: «перед добавлением в строку для подписи значение Receipt
+  // нужно URL-кодировать». Первый вариант описывает саму подпись, поэтому он
+  // по умолчанию; второй остаётся переключателем ROBOKASSA_RECEIPT_SIGN=encoded
+  // на случай, если магазин настроен иначе.
+  // В самом запросе Receipt всегда уходит закодированным: этим занимается
+  // URLSearchParams, и к подписи это отношения не имеет.
   const receiptRaw = JSON.stringify(receipt);
-  const receiptEnc = encodeURIComponent(receiptRaw);
+  const receiptForSign = String(process.env.ROBOKASSA_RECEIPT_SIGN || 'raw') === 'encoded'
+    ? encodeURIComponent(receiptRaw)
+    : receiptRaw;
   const signature = md5([
     process.env.ROBOKASSA_LOGIN,
     outSum,
     invId,
-    receiptEnc,
+    receiptForSign,
     process.env.ROBOKASSA_PASS1,
   ].join(':'));
 
