@@ -84,11 +84,16 @@ async function call(path, { method = 'GET', body, query } = {}) {
   return data;
 }
 
-// Габариты: клиент подтвердил одну коробку на весь ассортимент.
+// Габариты: клиент подтвердил одну коробку на весь ассортимент, 233x193x98 мм.
+// ВАЖНО: СДЭК принимает габариты в САНТИМЕТРАХ, а вес в граммах.
+// Переменные держим в миллиметрах, как их дал клиент, и переводим здесь.
+// Без перевода коробка превращается в ящик 2,3 x 1,9 x 1 метр, объёмный вес
+// улетает под две тонны, и доставка считается в сотни тысяч рублей.
+const cm = (mm) => Math.max(1, Math.ceil(Number(mm) / 10));
 const box = () => ({
-  length: Number(process.env.CDEK_BOX_L) || 233,
-  width: Number(process.env.CDEK_BOX_W) || 193,
-  height: Number(process.env.CDEK_BOX_H) || 98,
+  length: cm(process.env.CDEK_BOX_L || 233),
+  width: cm(process.env.CDEK_BOX_W || 193),
+  height: cm(process.env.CDEK_BOX_H || 98),
 });
 
 /**
