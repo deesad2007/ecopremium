@@ -119,10 +119,26 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
 
   const { grams, approximate } = weighOrder(items);
 
+  // Калькулятор СДЭКа надёжнее работает с кодом города, чем с названием текстом:
+  // «Казань» существует и в Татарстане, и в Кировской области. Если индекса нет,
+  // сначала превращаем название в код через справочник.
+  let to = null;
+  if (toPostal) {
+    to = { postal_code: String(toPostal) };
+  } else if (toCity) {
+    const found = await findCities(String(toCity), 1);
+    to = found.length ? { code: found[0].code } : { city: String(toCity) };
+  }
+  if (!to) throw new Error('не указан город или индекс получателя');
+
+  const from = process.env.CDEK_FROM_CODE
+    ? { code: Number(process.env.CDEK_FROM_CODE) }
+    : { postal_code: String(process.env.CDEK_FROM_POSTAL || '607320') };
+
   const payload = {
     type: 1, // интернет-магазин
-    from_location: { postal_code: String(process.env.CDEK_FROM_POSTAL || '607320') },
-    to_location: toPostal ? { postal_code: String(toPostal) } : { city: String(toCity || '') },
+    from_location: from,
+    to_location: to,
     packages: [{ weight: grams, ...box() }],
   };
 
