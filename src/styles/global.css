@@ -571,3 +571,6 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
 .cdek-opt span { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .cdek-opt b { font-size: 15px; }
 .cdek-opt i { font-style: normal; opacity: .65; font-size: 13px; }
+
+#cdekMapBtn { margin-top: 6px; }
+#cdek-map { width: 100%; min-height: 600px; }

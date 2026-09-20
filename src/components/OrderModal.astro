@@ -54,6 +54,12 @@
             <option>Самовывоз с маслодельни</option>
           </select>
         </div>
+        <div class="field" id="cdekWidgetBox" hidden>
+          <label>Доставка СДЭК</label>
+          <button type="button" class="btn btn-dark" id="cdekMapBtn" style="width:100%">Выбрать пункт выдачи на карте</button>
+          <div class="pay-note" id="cdekPicked" hidden></div>
+        </div>
+        <div id="cdek-map" style="display:none"></div>
         <div class="field" id="cdekBox" hidden>
           <label for="fCity">Город доставки</label>
           <div class="promo-row">
@@ -232,8 +238,10 @@
     payBtn.hidden = !can;
     payNote.hidden = !can;
     askNote.hidden = can;
-    cdekBox.hidden = !can;
-    if (!can) resetDelivery();
+    // По умолчанию предлагаем карту, поле города остаётся запасным вариантом.
+    widgetBox.hidden = !can;
+    cdekBox.hidden = true;
+    if (!can) { resetDelivery(); picked.hidden = true; }
   }
 
   volSelect.addEventListener('change', refreshPayButton);
@@ -300,6 +308,95 @@
     } finally {
       calcBtn.disabled = false;
       calcBtn.textContent = was;
+    }
+  });
+
+  // ── виджет СДЭК с картой ──
+  // Скрипт внешний, поэтому грузим его лениво, по клику, и только один раз.
+  // Если он не загрузился (медленный интернет, блокировщик, старый телефон),
+  // молча показываем прежний способ с городом и списком: покупатель не должен
+  // остаться без доставки из-за чужого сервера.
+  const widgetBox = document.getElementById('cdekWidgetBox');
+  const mapBtn = document.getElementById('cdekMapBtn');
+  const picked = document.getElementById('cdekPicked');
+  let widget = null;
+  let widgetLoading = null;
+
+  function loadWidgetScript() {
+    if (window.CDEKWidget) return Promise.resolve(true);
+    if (widgetLoading) return widgetLoading;
+    widgetLoading = new Promise((resolve) => {
+      const el = document.createElement('script');
+      el.src = 'https://cdn.jsdelivr.net/npm/@cdek-it/widget@3';
+      el.onload = () => resolve(Boolean(window.CDEKWidget));
+      el.onerror = () => resolve(false);
+      document.head.appendChild(el);
+      setTimeout(() => resolve(Boolean(window.CDEKWidget)), 8000);
+    });
+    return widgetLoading;
+  }
+
+  // Запасной путь: прежняя форма с городом.
+  function fallbackToCity(reason) {
+    widgetBox.hidden = true;
+    cdekBox.hidden = false;
+    if (reason) {
+      cdekNote.hidden = false;
+      cdekNote.textContent = reason;
+    }
+  }
+
+  // Габариты те же, что на сервере: одна коробка 24x20x10 см,
+  // вес по килограмму на единицу, пока весов нет в каталоге.
+  function parcels() {
+    const count = payableLines().reduce((s, i) => s + (i.qty || 1), 0) || 1;
+    return [{ length: 24, width: 20, height: 10, weight: count * 1000 }];
+  }
+
+  mapBtn?.addEventListener('click', async () => {
+    mapBtn.disabled = true;
+    const was = mapBtn.textContent;
+    mapBtn.textContent = 'Открываем карту…';
+    try {
+      const ok = await loadWidgetScript();
+      if (!ok) return fallbackToCity('Карта не загрузилась. Укажите город, посчитаем доставку списком.');
+
+      if (!widget) {
+        widget = new window.CDEKWidget({
+          from: 'Москва',
+          root: 'cdek-map',
+          popup: true,
+          servicePath: '/api/cdek-widget',
+          goods: parcels(),
+          // Показываем только обычную «Посылку»: экспресс вдвое дороже при тех же сроках.
+          tariffs: { office: [136, 368], door: [137] },
+          onChoose(type, tariff, address) {
+            // Имена полей у виджета могут отличаться от версии к версии,
+            // поэтому берём первое подходящее, а не одно жёстко заданное.
+            const a = address || {};
+            const code = a.code || a.id || '';
+            const addr = a.address_full || a.address || a.name || '';
+            const city = a.city || a.cityName || document.getElementById('fCity').value.trim();
+            const price = tariff && (tariff.delivery_sum || tariff.sum || tariff.price);
+            chosenDelivery = {
+              kind: String(type).includes('door') ? 'courier' : 'pvz',
+              city, pointCode: code, pointAddress: addr,
+            };
+            picked.hidden = false;
+            picked.textContent = addr
+              ? `Выбрано: ${addr}${price ? `, доставка ${price} ₽` : ''}`
+              : 'Пункт выдачи выбран.';
+          },
+        });
+      } else {
+        widget.updateParcels?.(parcels());
+      }
+      widget.open();
+    } catch (err) {
+      fallbackToCity('Карта недоступна. Укажите город, посчитаем доставку списком.');
+    } finally {
+      mapBtn.disabled = false;
+      mapBtn.textContent = was;
     }
   });
 
