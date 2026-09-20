@@ -1120,12 +1120,11 @@
       "badges": [],
       "variants": [
         {
-          "volume": "150 г",
+          "volume": "350 г",
           "price": 650
         }
       ],
-      "section": "food",
-      "_priceNote": "в прайсе 150 г за 650 ₽ — остальной хлеб 300 г за 650 ₽; проверить вес"
+      "section": "food"
     },
     {
       "id": "202",
