@@ -152,8 +152,17 @@ export async function deliveryOptions({ toPostal, toCity, items }) {
 
   // В ответе СДЭКа режим доставки: 1 дверь-дверь, 2 дверь-склад,
   // 3 склад-дверь, 4 склад-склад, 6 склад-постамат, 7 дверь-постамат.
-  const toDoor = list.filter((t) => [1, 3].includes(t.delivery_mode));
-  const toPoint = list.filter((t) => [2, 4, 6, 7].includes(t.delivery_mode));
+  //
+  // Первое слово — как посылку забирают У НАС. «Дверь» означает выезд курьера
+  // к отправителю, и за выезд в Дивеево СДЭК берёт крупную фиксированную
+  // надбавку: доставка в соседний Арзамас выходила дороже, чем во Владивосток.
+  // По умолчанию считаем, что посылки сдаются в отделении СДЭК.
+  const fromDoor = String(process.env.CDEK_SHIP_FROM || 'warehouse') === 'door';
+  const doorModes = fromDoor ? [1] : [3];
+  const pointModes = fromDoor ? [2, 7] : [4, 6];
+
+  const toDoor = list.filter((t) => doorModes.includes(t.delivery_mode));
+  const toPoint = list.filter((t) => pointModes.includes(t.delivery_mode));
   const cheapest = (arr) => arr.slice().sort((a, b) => a.delivery_sum - b.delivery_sum)[0] || null;
 
   const shape = (t, kind) => t && {
