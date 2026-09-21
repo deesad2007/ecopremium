@@ -89,6 +89,36 @@ export async function POST({ request, clientAddress }) {
     }, 400);
   }
 
+  // ВАЖНО: скидки считаются ДО добавления доставки. Если поменять порядок,
+  // скидка пройдёт и по тарифу: владелец просил скидку на всё, кроме доставки.
+  // ── скидки ──
+  // Всё считается на сервере: из браузера приходит только код промокода.
+  // Скидка применяется к товарам и НЕ применяется к доставке: возить дешевле
+  // от этого не становится.
+  const promo = cut(body.promo, 60);
+  const promoPct = promoPercent(promo);
+
+  const goodsSum = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const tier = [...discounts].sort((a, b) => a.from - b.from)
+    .filter((t) => goodsSum >= t.from).pop();
+  const tierPct = tier ? tier.percent : 0;
+
+  // Берём большую из двух скидок, а не сумму: так корзина считала и раньше.
+  const percent = Math.max(promoPct, tierPct);
+
+  if (percent > 0) {
+    // Распределяем скидку по позициям, чтобы сумма чека сошлась до копейки.
+    let left = Math.round(goodsSum * percent) / 100;
+    items.forEach((i, idx) => {
+      const lineSum = i.price * i.qty;
+      const part = idx === items.length - 1
+        ? left
+        : Math.round((lineSum * percent) / 100 * 100) / 100;
+      left = Math.round((left - part) * 100) / 100;
+      i.price = Math.max(0.01, Math.round((lineSum - part) / i.qty * 100) / 100);
+    });
+  }
+
   // ── доставка ──
   // Цену доставки пересчитываем на сервере, как и цены товаров: то, что
   // прислал браузер, служит только указанием «куда и каким способом».
@@ -118,34 +148,6 @@ export async function POST({ request, clientAddress }) {
       // менеджер согласует доставку отдельно. Молча терять заказ нельзя.
       console.error('[pay] доставку посчитать не удалось:', err);
     }
-  }
-
-  // ── скидки ──
-  // Всё считается на сервере: из браузера приходит только код промокода.
-  // Скидка применяется к товарам и НЕ применяется к доставке: возить дешевле
-  // от этого не становится.
-  const promo = cut(body.promo, 60);
-  const promoPct = promoPercent(promo);
-
-  const goodsSum = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const tier = [...discounts].sort((a, b) => a.from - b.from)
-    .filter((t) => goodsSum >= t.from).pop();
-  const tierPct = tier ? tier.percent : 0;
-
-  // Берём большую из двух скидок, а не сумму: так корзина считала и раньше.
-  const percent = Math.max(promoPct, tierPct);
-
-  if (percent > 0) {
-    // Распределяем скидку по позициям, чтобы сумма чека сошлась до копейки.
-    let left = Math.round(goodsSum * percent) / 100;
-    items.forEach((i, idx) => {
-      const lineSum = i.price * i.qty;
-      const part = idx === items.length - 1
-        ? left
-        : Math.round((lineSum * percent) / 100 * 100) / 100;
-      left = Math.round((left - part) * 100) / 100;
-      i.price = Math.max(0.01, Math.round((lineSum - part) / i.qty * 100) / 100);
-    });
   }
 
   const invId = newInvId();
