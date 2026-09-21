@@ -206,14 +206,37 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
     if (btn) { btn.dataset.price = String(price); btn.dataset.volume = volBtn.textContent.trim(); }
   });
 
-  // Промокод — заглушка (реальная проверка появится при подключении Робокассы/CRM)
-  document.getElementById('promoBtn')?.addEventListener('click', () => {
+  // Промокод проверяется на сервере. Ответ нужен только чтобы показать человеку,
+  // что код принят: настоящая скидка считается заново при выставлении счёта,
+  // поэтому подделать её из браузера нельзя.
+  const promoBtn = document.getElementById('promoBtn');
+  promoBtn?.addEventListener('click', async () => {
     const note = document.getElementById('promoNote');
     const val = document.getElementById('fPromo').value.trim();
     note.hidden = false;
-    note.textContent = val
-      ? 'Промокод сохранён в заявке — менеджер применит скидку при подтверждении.'
-      : 'Введите промокод.';
+    if (!val) { note.textContent = 'Введите промокод.'; return; }
+
+    promoBtn.disabled = true;
+    const was = promoBtn.textContent;
+    promoBtn.textContent = 'Проверяем…';
+    try {
+      const stop = new AbortController();
+      const timer = setTimeout(() => stop.abort(), 15000);
+      const res = await fetch('/api/promo', {
+        signal: stop.signal,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: val }),
+      });
+      clearTimeout(timer);
+      const data = await res.json().catch(() => ({}));
+      note.textContent = data.message || data.error || 'Не удалось проверить промокод.';
+    } catch {
+      note.textContent = 'Не удалось проверить промокод, но он сохранится в заявке.';
+    } finally {
+      promoBtn.disabled = false;
+      promoBtn.textContent = was;
+    }
   });
 
   // ── оплата картой ──
@@ -512,6 +535,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
           email: form.email.value.trim(),
           address: form.address.value.trim(),
           delivery: form.delivery.value,
+          promo: form.promo.value.trim(),
           comment: form.comment.value.trim(),
           page: location.pathname,
           items,
@@ -526,7 +550,9 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
       // Показываем, что происходит: страница Робокассы на мобильном интернете
       // может открываться несколько секунд, и молчащая кнопка пугает покупателя.
       msg.className = 'form-msg ok';
-      msg.textContent = 'Переходим на страницу оплаты…';
+      msg.textContent = data.discount
+        ? `Скидка ${data.discount}% применена, сумма ${data.sum} ₽. Переходим на страницу оплаты…`
+        : 'Переходим на страницу оплаты…';
       payBtn.textContent = 'Открываем оплату…';
 
       // Если переход почему-то не случился, даём ссылку руками, а не оставляем

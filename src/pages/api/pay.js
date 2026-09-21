@@ -14,6 +14,8 @@ import { newInvId, paymentUrl, robokassaStatus } from '../../lib/robokassa.js';
 import { deliveryOptions, cdekStatus } from '../../lib/cdek.js';
 import { notifyOrder } from '../../lib/notify.js';
 import { json, cut, makeRateLimiter } from '../../lib/http.js';
+import { promoPercent } from '../../data/promo.js';
+import { discounts } from '../../data/site.js';
 
 export const prerender = false;
 
@@ -118,6 +120,34 @@ export async function POST({ request, clientAddress }) {
     }
   }
 
+  // ── скидки ──
+  // Всё считается на сервере: из браузера приходит только код промокода.
+  // Скидка применяется к товарам и НЕ применяется к доставке: возить дешевле
+  // от этого не становится.
+  const promo = cut(body.promo, 60);
+  const promoPct = promoPercent(promo);
+
+  const goodsSum = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const tier = [...discounts].sort((a, b) => a.from - b.from)
+    .filter((t) => goodsSum >= t.from).pop();
+  const tierPct = tier ? tier.percent : 0;
+
+  // Берём большую из двух скидок, а не сумму: так корзина считала и раньше.
+  const percent = Math.max(promoPct, tierPct);
+
+  if (percent > 0) {
+    // Распределяем скидку по позициям, чтобы сумма чека сошлась до копейки.
+    let left = Math.round(goodsSum * percent) / 100;
+    items.forEach((i, idx) => {
+      const lineSum = i.price * i.qty;
+      const part = idx === items.length - 1
+        ? left
+        : Math.round((lineSum * percent) / 100 * 100) / 100;
+      left = Math.round((left - part) * 100) / 100;
+      i.price = Math.max(0.01, Math.round((lineSum - part) / i.qty * 100) / 100);
+    });
+  }
+
   const invId = newInvId();
   let pay;
   try {
@@ -144,6 +174,7 @@ export async function POST({ request, clientAddress }) {
     delivery: cut(body.delivery, 80),
     comment: cut(body.comment, 2000),
     composition: items.map((i) => `${i.name} × ${i.qty}`).join('; '),
+    promo: percent > 0 ? `${promo || 'скидка от суммы'} (−${percent}%)` : promo,
     price: Number(pay.outSum),
     invId,
     page: cut(body.page, 200),
@@ -163,7 +194,7 @@ export async function POST({ request, clientAddress }) {
     })
     .catch((err) => console.error('[pay] каналы не приняли счёт', invId, err));
 
-  return json({ ok: true, url: pay.url, invId, sum: pay.outSum, skipped });
+  return json({ ok: true, url: pay.url, invId, sum: pay.outSum, skipped, discount: percent });
 }
 
 // Вес в граммах: сначала у выбранной фасовки, потом у товара целиком.
