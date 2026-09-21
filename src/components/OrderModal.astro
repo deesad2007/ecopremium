@@ -498,7 +498,13 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
     const original = payBtn.textContent;
     payBtn.textContent = 'Готовим счёт…';
     try {
+      // Без ограничения по времени запрос на мобильной сети может висеть
+      // бесконечно, и кнопка остаётся в состоянии «Готовим счёт…».
+      // Двадцати секунд хватает с запасом: сервер отвечает за полсекунды.
+      const stop = new AbortController();
+      const timer = setTimeout(() => stop.abort(), 20000);
       const res = await fetch('/api/pay', {
+        signal: stop.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -512,13 +518,34 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '';
           ...(chosenDelivery ? { cdek: chosenDelivery } : {}),
         }),
       });
+      clearTimeout(timer);
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) throw new Error(data.error || 'bad status ' + res.status);
       if (window.ym) window.ym(Number(99571167), 'reachGoal', 'pay_start');
+
+      // Показываем, что происходит: страница Робокассы на мобильном интернете
+      // может открываться несколько секунд, и молчащая кнопка пугает покупателя.
+      msg.className = 'form-msg ok';
+      msg.textContent = 'Переходим на страницу оплаты…';
+      payBtn.textContent = 'Открываем оплату…';
+
+      // Если переход почему-то не случился, даём ссылку руками, а не оставляем
+      // человека перед зависшей кнопкой.
+      setTimeout(() => {
+        payBtn.disabled = false;
+        payBtn.textContent = original;
+        msg.className = 'form-msg err';
+        msg.innerHTML = 'Если страница оплаты не открылась, нажмите ' +
+          '<a href="' + data.url + '" rel="noopener">эту ссылку</a>.';
+      }, 6000);
+
       location.href = data.url;
     } catch (err) {
+      clearTimeout(timer);
       msg.className = 'form-msg err';
-      msg.textContent = String(err.message || err);
+      msg.innerHTML = err.name === 'AbortError'
+        ? 'Связь оборвалась. Проверьте интернет и попробуйте ещё раз, или отправьте заявку: менеджер пришлёт счёт.'
+        : String(err.message || err);
       payBtn.disabled = false;
       payBtn.textContent = original;
     }
