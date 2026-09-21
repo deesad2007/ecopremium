@@ -369,7 +369,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   // на запасной путь, чтобы покупатель не остался перед пустой картой.
   window.addEventListener('unhandledrejection', (e) => {
     const msg = String(e.reason?.message || e.reason || '');
-    if (!msg.includes('CDEK')) return;
+    if (!/CDEK|Yandex|ymaps/i.test(msg)) return;
     mapBox.hidden = true;
     fallbackToCity('Карта временно недоступна. Укажите город, посчитаем доставку списком.');
   });
@@ -458,6 +458,16 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
       }
       mapBox.hidden = false;
       widget.open();
+
+      // Виджет открывается даже когда карта не загрузилась, и покупатель
+      // видит пустой белый прямоугольник. Проверяем, поднялся ли движок карт,
+      // и если нет — молча возвращаемся к списку пунктов.
+      setTimeout(() => {
+        if (typeof window.ymaps3 === 'undefined') {
+          mapBox.hidden = true;
+          fallbackToCity('Карта временно недоступна. Укажите город, и мы покажем пункты выдачи списком.');
+        }
+      }, 7000);
     } catch (err) {
       fallbackToCity('Карта недоступна. Укажите город, посчитаем доставку списком.');
     } finally {
