@@ -768,12 +768,16 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     payBtn.disabled = true;
     const original = payBtn.textContent;
     payBtn.textContent = 'Готовим счёт…';
+    // timer нужен и в catch, а const внутри try там уже не виден: при любом
+    // сбое оплаты вместо настоящей ошибки падало «timer is not defined»,
+    // причина терялась, а кнопка оставалась в «Готовим счёт…».
+    let timer;
     try {
       // Без ограничения по времени запрос на мобильной сети может висеть
       // бесконечно, и кнопка остаётся в состоянии «Готовим счёт…».
       // Двадцати секунд хватает с запасом: сервер отвечает за полсекунды.
       const stop = new AbortController();
-      const timer = setTimeout(() => stop.abort(), 20000);
+      timer = setTimeout(() => stop.abort(), 20000);
       const res = await fetch('/api/pay', {
         signal: stop.signal,
         method: 'POST',
