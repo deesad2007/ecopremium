@@ -665,6 +665,23 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   }
   pvzSelect?.addEventListener('change', applyPvz);
 
+  function deliveryProblem() {
+    const mode = deliverySelect ? deliverySelect.value : '';
+    if (!mode) return 'Выберите способ доставки.';
+    if (mode.startsWith('Самовывоз')) return '';
+    if (mode.startsWith('СДЭК')) {
+      if (!chosenDelivery?.kind) return 'Укажите город и нажмите «Рассчитать», чтобы выбрать доставку.';
+      if (chosenDelivery.kind === 'pvz' && !chosenDelivery.pointCode) {
+        return 'Выберите пункт выдачи — на карте или из списка.';
+      }
+      if (chosenDelivery.kind === 'courier' && !form.address.value.trim()) {
+        return 'Укажите адрес доставки, куда привезти заказ.';
+      }
+      return '';
+    }
+    return form.address.value.trim() ? '' : 'Укажите адрес доставки.';
+  }
+
   payBtn?.addEventListener('click', async () => {
     msg.className = 'form-msg';
     const name = form.name.value.trim();
@@ -677,6 +694,14 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     if (!form.consent.checked) {
       msg.className = 'form-msg err';
       msg.textContent = 'Отметьте согласие с офертой и политикой обработки данных.';
+      return;
+    }
+    // Без адреса или выбранного пункта заказ некуда везти, а после перехода
+    // на страницу оплаты исправить это уже нельзя: проверяем до счёта.
+    const problem = deliveryProblem();
+    if (problem) {
+      msg.className = 'form-msg err';
+      msg.textContent = problem;
       return;
     }
     const items = payableLines();
