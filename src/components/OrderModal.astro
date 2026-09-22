@@ -145,6 +145,9 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     document.getElementById('fProduct').value = product || '';
     document.getElementById('fProductId').value = productId || '';
     document.getElementById('fPage').value = location.pathname;
+    // Карта могла остаться открытой с прошлого раза: она висит поверх всего
+    // и перекрывает форму, поэтому закрываем её при каждом открытии.
+    window.__ecoCloseMap?.();
     refreshPayButton();
 
     let variants = [];
@@ -176,6 +179,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   function closeModal() {
     modal.classList.remove('open');
     document.body.style.overflow = '';
+    window.__ecoCloseMap?.();
   }
 
   document.addEventListener('click', (e) => {
@@ -502,6 +506,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
 
     // выбор пункта прямо на карте
     ownMap.addEventListener('click', (e) => {
+      if (e.target === ownMap) { closeOwnMap(); return; }
       const btn = e.target.closest('[data-pick]');
       if (!btn) return;
       const code = btn.dataset.pick;
@@ -511,13 +516,23 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
       if (pvzSelect) pvzSelect.value = point.code;
       picked.hidden = false;
       picked.textContent = `Выбрано: ${point.address}`;
-      ownMap.hidden = true;
+      closeOwnMap();
     });
   }
 
-  // закрытие карты по Escape и кликом мимо
+  // Закрытие карты в одном месте: прячем контейнер и уничтожаем экземпляр,
+  // иначе он продолжает жить, перехватывать касания и копиться при повторных
+  // открытиях. Из-за этого карта перекрывала форму при втором оформлении.
+  function closeOwnMap() {
+    if (!ownMap) return;
+    ownMap.hidden = true;
+    if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+    ownMap.innerHTML = '';
+  }
+  window.__ecoCloseMap = closeOwnMap;
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !ownMap.hidden) ownMap.hidden = true;
+    if (e.key === 'Escape' && ownMap && !ownMap.hidden) closeOwnMap();
   });
 
   // ── конкретный пункт выдачи ──
