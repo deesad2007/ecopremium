@@ -84,7 +84,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
         </div>
         <div class="field" id="addrField" hidden>
           <label for="fAddress">Адрес доставки</label>
-          <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Город, улица, дом, квартира" />
+          <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Улица, дом, квартира" />
         </div>
         <button type="button" class="promo-toggle" id="promoToggle">У меня есть промокод</button>
         <div class="field" id="promoField" hidden>
@@ -665,6 +665,55 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   }
   pvzSelect?.addEventListener('change', applyPvz);
 
+  // Адрес в СДЭК не передаётся, поэтому опечатку там никто не поймает:
+  // проверяем сами. Но подтверждённую человеком странность пропускаем —
+  // новостройки и свежие улицы геокодер знает не всегда, и терять из-за
+  // этого живой заказ нельзя.
+  let addressWarned = false;
+
+  async function addressProblem() {
+    const mode = deliverySelect ? deliverySelect.value : '';
+    if (!mode || mode.startsWith('Самовывоз')) return '';
+    if (chosenDelivery?.kind === 'pvz') return '';
+    const address = form.address.value.trim();
+    if (!address || addressWarned) return '';
+
+    let data;
+    try {
+      const stop = new AbortController();
+      const timer = setTimeout(() => stop.abort(), 10000);
+      const res = await fetch('/api/address-check', {
+        signal: stop.signal,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, city: chosenDelivery?.city || '' }),
+      });
+      clearTimeout(timer);
+      data = await res.json();
+    } catch {
+      return ''; // проверка недоступна — не мешаем человеку платить
+    }
+
+    if (data.ok) {
+      if (data.formatted) {
+        const note = document.getElementById('payNote');
+        note.hidden = false;
+        note.textContent = 'Адрес доставки: ' + data.formatted;
+      }
+      return '';
+    }
+
+    addressWarned = true;
+    const again = ' Если адрес верный, нажмите «Оплатить картой» ещё раз.';
+    if (data.reason === 'no_house') {
+      return 'Не нашли дом по этому адресу — проверьте улицу и номер дома.' + again;
+    }
+    if (data.reason === 'other_city') {
+      return `Этот адрес похож на другой город (${data.foundCity}), а доставка считается в ${chosenDelivery?.city || 'выбранный город'}.` + again;
+    }
+    return 'Не удалось разобрать адрес. Проверьте улицу, номер дома и квартиру.' + again;
+  }
+
   function deliveryProblem() {
     const mode = deliverySelect ? deliverySelect.value : '';
     if (!mode) return 'Выберите способ доставки.';
@@ -702,6 +751,12 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     if (problem) {
       msg.className = 'form-msg err';
       msg.textContent = problem;
+      return;
+    }
+    const addrIssue = await addressProblem();
+    if (addrIssue) {
+      msg.className = 'form-msg err';
+      msg.textContent = addrIssue;
       return;
     }
     const items = payableLines();
