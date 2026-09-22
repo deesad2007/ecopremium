@@ -5,7 +5,17 @@ import { contacts } from '../../data/site.js';
 
 export const prerender = false;
 
-const invId = Astro.url.searchParams.get('InvId') || '';
+// Тот же приём, что и на странице успеха: метод возврата задаётся
+// в кабинете Робокассы, поэтому читаем и строку запроса, и тело.
+let invId = Astro.url.searchParams.get('InvId') || '';
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    invId = String(form.get('InvId') || invId);
+  } catch {
+    // ничего не делаем, номер счёта просто не покажем
+  }
+}
 ---
 <Base title="Оплата не прошла — EcoPremi" description="Оплата не завершена. Заказ сохранён, менеджер поможет оформить.">
   <section class="page-hero">

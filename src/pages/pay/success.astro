@@ -7,8 +7,20 @@ import { contacts } from '../../data/site.js';
 
 export const prerender = false;
 
-const invId = Astro.url.searchParams.get('InvId') || '';
-const sum = Astro.url.searchParams.get('OutSum') || '';
+// Робокасса возвращает покупателя либо GET, либо POST — метод выбирается
+// в её кабинете. Читаем оба варианта, чтобы номер счёта показывался всегда
+// и не зависел от чужой настройки.
+let invId = Astro.url.searchParams.get('InvId') || '';
+let sum = Astro.url.searchParams.get('OutSum') || '';
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    invId = String(form.get('InvId') || invId);
+    sum = String(form.get('OutSum') || sum);
+  } catch {
+    // тело пришло в неожиданном виде — покажем страницу без номера счёта
+  }
+}
 ---
 <Base title="Оплата прошла — EcoPremi" description="Спасибо за заказ в EcoPremi.">
   <section class="page-hero">
