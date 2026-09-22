@@ -3,4 +3,6 @@ Allow: /
 # Служебные адреса оплаты в поиске не нужны
 Disallow: /pay/
 Disallow: /api/
+# Служебная страница для поддержки Яндекс.Карт
+Disallow: /yandex-check
 Sitemap: https://ekopremium.ru/sitemap.xml

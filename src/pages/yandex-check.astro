@@ -1,0 +1,69 @@
+---
+// Минимальный пример для поддержки Яндекс.Карт: страница подключает
+// JavaScript API с нашим ключом и показывает результат прямо на экране.
+// Нужна, потому что поддержка просит ссылку, где можно воспроизвести 403.
+// От индексации закрыта в robots.txt, из меню сайта не ведёт ничего.
+const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9e2-1d1eca558315';
+---
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Проверка ключа Яндекс.Карт — ekopremium.ru</title>
+    <style>
+      body { font: 15px/1.6 system-ui, sans-serif; margin: 24px; color: #222; }
+      h1 { font-size: 19px; }
+      code { background: #f2f2f2; padding: 2px 5px; border-radius: 3px; }
+      #log { background: #f7f7f7; border: 1px solid #ddd; padding: 12px; white-space: pre-wrap;
+             font-family: ui-monospace, monospace; font-size: 13px; margin: 14px 0; }
+      #map { width: 100%; height: 420px; border: 1px solid #ddd; }
+    </style>
+  </head>
+  <body>
+    <h1>Проверка ключа Яндекс.Карт</h1>
+    <p>Страница подключает JavaScript API 3.0 и показывает результат. Домен страницы совпадает
+      с доменом в ограничении по HTTP Referer у ключа.</p>
+    <p>Ключ: <code id="key"></code></p>
+    <div id="log">Загружаем…</div>
+    <div id="map"></div>
+
+    <script define:vars={{ mapsKey }}>
+      const log = document.getElementById('log');
+      const lines = [];
+      const say = (s) => { lines.push(s); log.textContent = lines.join('\n'); };
+
+      document.getElementById('key').textContent = mapsKey;
+      say('Адрес страницы: ' + location.href);
+      say('Referer, который уйдёт в запрос: ' + location.href);
+      say('Запрашиваем: https://api-maps.yandex.ru/v3/?apikey=' + mapsKey + '&lang=ru_RU');
+
+      const el = document.createElement('script');
+      el.src = `https://api-maps.yandex.ru/v3/?apikey=${mapsKey}&lang=ru_RU`;
+      el.onload = async () => {
+        say('Скрипт загрузился.');
+        try {
+          await ymaps3.ready;
+          say('ymaps3.ready выполнен, версия API доступна.');
+          const { YMap, YMapDefaultSchemeLayer } = ymaps3;
+          const map = new YMap(document.getElementById('map'), {
+            location: { center: [37.6173, 55.7558], zoom: 10 },
+          });
+          map.addChild(new YMapDefaultSchemeLayer());
+          say('Карта построена. Ключ работает.');
+        } catch (e) {
+          say('Ошибка при инициализации карты: ' + (e && e.message ? e.message : e));
+        }
+      };
+      el.onerror = () => {
+        say('ОШИБКА: скрипт API не загрузился.');
+        say('Прямой запрос тем же ключом к геокодеру отвечает:');
+        fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=${mapsKey}&geocode=Kazan&format=json`)
+          .then((r) => r.text())
+          .then((t) => say(t.slice(0, 300)))
+          .catch((err) => say('запрос к геокодеру не выполнен: ' + err));
+      };
+      document.head.appendChild(el);
+    </script>
+  </body>
+</html>
