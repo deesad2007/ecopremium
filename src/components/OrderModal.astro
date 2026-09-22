@@ -786,6 +786,16 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     submit.textContent = 'Отправляем…';
     try {
       const data = Object.fromEntries(new FormData(form).entries());
+      // Выбранный пункт выдачи хранится в переменной, а не в поле формы,
+      // и в заявку сам по себе не попадает. Для пункта выдачи поле адреса
+      // скрыто, поэтому без этого менеджер получал заявку без места доставки.
+      if (chosenDelivery?.kind === 'pvz' && chosenDelivery.pointAddress) {
+        const code = chosenDelivery.pointCode ? ' ' + chosenDelivery.pointCode : '';
+        data.address = `Пункт выдачи СДЭК${code}: ${chosenDelivery.pointAddress}`;
+      } else if (chosenDelivery?.kind === 'courier' && data.address && chosenDelivery.city
+                 && !data.address.toLowerCase().includes(chosenDelivery.city.toLowerCase())) {
+        data.address = `${chosenDelivery.city}, ${data.address}`;
+      }
       const res = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
