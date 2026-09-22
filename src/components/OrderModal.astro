@@ -82,6 +82,10 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
             <div class="pay-note" id="pvzNote" hidden></div>
           </div>
         </div>
+        <div class="field" id="addrField" hidden>
+          <label for="fAddress">Адрес доставки</label>
+          <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Город, улица, дом, квартира" />
+        </div>
         <button type="button" class="promo-toggle" id="promoToggle">У меня есть промокод</button>
         <div class="field" id="promoField" hidden>
           <label for="fPromo">Промокод</label>
@@ -90,10 +94,6 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
             <button type="button" id="promoBtn">Активировать</button>
           </div>
           <div class="pay-note" id="promoNote" hidden></div>
-        </div>
-        <div class="field" id="addrField" hidden>
-          <label for="fAddress">Адрес доставки</label>
-          <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Город, улица, дом, квартира" />
         </div>
         <div class="field">
           <label for="fComment">Комментарий</label>
