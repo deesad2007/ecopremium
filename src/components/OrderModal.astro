@@ -47,10 +47,9 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
           <label for="fVolume">Объём</label>
           <select id="fVolume" name="volume"></select>
         </div>
-        <div class="field">
-          <label for="fComposition">Состав заказа</label>
-          <textarea id="fComposition" name="composition" placeholder="Что и сколько хотите заказать"></textarea>
-        </div>
+        {/* состав заказа уходит в заявку, но человеку его показывать незачем:
+            он уже видит сводку сверху и меняет заказ в корзине */}
+        <input type="hidden" id="fComposition" name="composition" />
         <div class="field">
           <label for="fDelivery">Способ доставки</label>
           <select id="fDelivery" name="delivery">
@@ -80,9 +79,11 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
           <div class="field" id="pvzField" hidden style="margin-top:10px">
             <label for="fPvz">Пункт выдачи</label>
             <select id="fPvz"></select>
+            <div class="pay-note" id="pvzNote" hidden></div>
           </div>
         </div>
-        <div class="field">
+        <button type="button" class="promo-toggle" id="promoToggle">У меня есть промокод</button>
+        <div class="field" id="promoField" hidden>
           <label for="fPromo">Промокод</label>
           <div class="promo-row">
             <input type="text" id="fPromo" name="promo" placeholder="Если есть" />
@@ -90,13 +91,13 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
           </div>
           <div class="pay-note" id="promoNote" hidden></div>
         </div>
-        <div class="field">
+        <div class="field" id="addrField" hidden>
           <label for="fAddress">Адрес доставки</label>
           <input type="text" id="fAddress" name="address" autocomplete="street-address" placeholder="Город, улица, дом, квартира" />
         </div>
         <div class="field">
           <label for="fComment">Комментарий</label>
-          <textarea id="fComment" name="comment" placeholder="Город, адрес, пожелания"></textarea>
+          <textarea id="fComment" name="comment" placeholder="Пожелания к заказу"></textarea>
         </div>
 
         <label class="consent">
@@ -278,10 +279,40 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     // виджет открывается пустым, поэтому показываем проверенный способ с городом.
     // Своя карта работает без ключей, поэтому показываем и кнопку карты,
     // и поле города: город нужен, чтобы знать, какие пункты показывать.
-    widgetBox.hidden = !can;
-    cdekBox.hidden = !can;
+    canPay = can;
+    applyDeliveryMode();
     if (!can) { resetDelivery(); picked.hidden = true; }
   }
+
+  // Раньше все поля доставки висели на экране сразу: город, пункт выдачи,
+  // адрес и комментарий одновременно. Владелец сказал, что покупатели в этом
+  // не разбираются, поэтому спрашиваем только то, что нужно выбранному способу.
+  const deliverySelect = document.getElementById('fDelivery');
+  const addrField = document.getElementById('addrField');
+  let canPay = false;
+
+  function applyDeliveryMode() {
+    const mode = deliverySelect ? deliverySelect.value : '';
+    const isCdek = mode.startsWith('СДЭК');
+    const isPickup = mode.startsWith('Самовывоз');
+    widgetBox.hidden = !(canPay && isCdek);
+    cdekBox.hidden = !(canPay && isCdek);
+    addrField.hidden = !mode || isCdek || isPickup;
+    if (!isCdek) {
+      resetDelivery();
+      picked.hidden = true;
+      window.__ecoCloseMap?.();
+    }
+  }
+  deliverySelect?.addEventListener('change', applyDeliveryMode);
+
+  const promoToggle = document.getElementById('promoToggle');
+  promoToggle?.addEventListener('click', () => {
+    const box = document.getElementById('promoField');
+    box.hidden = !box.hidden;
+    promoToggle.hidden = !box.hidden ? true : false;
+    if (!box.hidden) document.getElementById('fPromo').focus();
+  });
 
   volSelect.addEventListener('change', refreshPayButton);
 
@@ -495,7 +526,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     const group = [];
     withCoords.forEach((p) => {
       const marker = window.L.marker([p.lat, p.lon]).addTo(mapInstance);
-      const safe = (p.address || p.name || '').replace(/</g, '&lt;');
+      const safe = shortAddr(p.address || p.name, city).replace(/</g, '&lt;');
       marker.bindPopup(
         `<b>${safe}</b><br>${p.workTime ? p.workTime + '<br>' : ''}` +
         `<button type="button" data-pick="${p.code}" style="margin-top:6px">Привезти сюда</button>`
@@ -515,7 +546,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
       chosenDelivery = { kind: 'pvz', city, pointCode: point.code, pointAddress: point.address };
       if (pvzSelect) pvzSelect.value = point.code;
       picked.hidden = false;
-      picked.textContent = `Выбрано: ${point.address}`;
+      picked.textContent = `Пункт выдачи: ${shortAddr(point.address, city)}`;
       closeOwnMap();
     });
   }
@@ -559,7 +590,11 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.points?.length) throw new Error(data.error || 'Пункты выдачи не найдены');
       pvzSelect.innerHTML = data.points
-        .map((p) => `<option value="${p.code}" data-address="${(p.address || '').replace(/"/g, '&quot;')}">${p.address || p.name}${p.workTime ? ' · ' + p.workTime : ''}</option>`)
+        .map((p) => {
+          const full = (p.address || p.name || '').replace(/"/g, '&quot;');
+          const work = (p.workTime || '').replace(/"/g, '&quot;');
+          return `<option value="${p.code}" data-address="${full}" data-work="${work}">${shortAddr(p.address || p.name, city)}</option>`;
+        })
         .join('');
       pvzLoadedFor = city;
       applyPvz();
@@ -573,6 +608,22 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     if (!opt || !chosenDelivery) return;
     chosenDelivery.pointCode = opt.value;
     chosenDelivery.pointAddress = opt.dataset.address || opt.textContent;
+    // Время работы в самом списке не помещалось и обрезало адрес,
+    // поэтому показываем его строкой ниже — для выбранного пункта.
+    const note = document.getElementById('pvzNote');
+    if (note) {
+      note.hidden = !opt.dataset.work;
+      note.textContent = opt.dataset.work ? 'Часы работы: ' + opt.dataset.work : '';
+    }
+  }
+
+  // СДЭК отдаёт адрес как «Россия, г. Москва, ул. …» — на телефоне город
+  // и страна съедают строку, и в списке не видно самого адреса.
+  function shortAddr(addr, city) {
+    let out = String(addr || '').replace(/^Россия,\s*/i, '');
+    const c = String(city || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (c) out = out.replace(new RegExp('^(?:г\\.?|город)?\\s*' + c + ',?\\s*', 'i'), '');
+    return out.trim() || String(addr || '');
   }
   pvzSelect?.addEventListener('change', applyPvz);
 

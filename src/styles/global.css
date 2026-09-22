@@ -582,3 +582,10 @@ footer.site { background: var(--hero-bg); color: #9c9d86; padding: 60px 7% 36px;
 .cdek-map { position: fixed; inset: 4%; width: auto; height: 92%; z-index: 200;
   background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
 .cdek-map[hidden] { display: none; }
+
+/* Промокод прячем за ссылкой: он нужен единицам, а поле в общем ряду
+   удлиняет форму и отвлекает от обязательных полей. */
+.promo-toggle {
+  background: none; border: 0; padding: 0 0 10px; cursor: pointer;
+  color: var(--gold); text-decoration: underline; font: inherit; font-size: 14px;
+}
