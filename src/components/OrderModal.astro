@@ -68,6 +68,7 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
           <div class="pay-note" id="cdekPicked" hidden></div>
         </div>
         <div id="cdek-map" class="cdek-map" hidden data-maps-key={mapsKey}></div>
+        <div id="ownMap" class="cdek-map" hidden></div>
         <div class="field" id="cdekBox" hidden>
           <label for="fCity">Город доставки</label>
           <div class="promo-row">
@@ -271,9 +272,10 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     askNote.hidden = can;
     // Карту предлагаем, только если есть рабочий ключ Яндекса. Без него
     // виджет открывается пустым, поэтому показываем проверенный способ с городом.
-    const mapsReady = Boolean(mapBox?.dataset.mapsKey);
-    widgetBox.hidden = !can || !mapsReady;
-    cdekBox.hidden = !can || mapsReady;
+    // Своя карта работает без ключей, поэтому показываем и кнопку карты,
+    // и поле города: город нужен, чтобы знать, какие пункты показывать.
+    widgetBox.hidden = !can;
+    cdekBox.hidden = !can;
     if (!can) { resetDelivery(); picked.hidden = true; }
   }
 
@@ -405,75 +407,117 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     return [{ length: 24, width: 20, height: 10, weight: count * 1000 }];
   }
 
+  // Кнопка открывает НАШУ карту на OpenStreetMap. Виджет СДЭКа оставлен
+  // в коде, но не используется: он требует ключ Яндекс.Карт, который у нас
+  // не работает. Своя карта ключей не требует вовсе.
   mapBtn?.addEventListener('click', async () => {
+    const city = document.getElementById('fCity').value.trim();
+    cdekNote.hidden = false;
+    if (!city) {
+      cdekNote.textContent = 'Сначала укажите город доставки, и мы покажем пункты на карте.';
+      return;
+    }
+
     mapBtn.disabled = true;
     const was = mapBtn.textContent;
-    mapBtn.textContent = 'Открываем карту…';
+    mapBtn.textContent = 'Загружаем карту…';
     try {
-      const ok = await loadWidgetScript();
-      if (!ok) return fallbackToCity('Карта не загрузилась. Укажите город, посчитаем доставку списком.');
-
-      if (!widget) {
-        widget = new window.CDEKWidget({
-          from: 'Москва',
-          // Обязательный параметр: без него виджет падает с исключением
-          // «defaultLocation is a required field».
-          apiKey: mapBox.dataset.mapsKey,
-          // Задаём КООРДИНАТАМИ, а не названием города. В коде виджета геокодер
-          // при старте вызывается только для строки (typeof defaultLocation ===
-          // 'string'), а Яндекс выдал отдельные ключи на карту и на геокодер,
-          // виджет же принимает только один. С координатами стартовое обращение
-          // к геокодеру исчезает, и карте хватает ключа JavaScript API.
-          // Центр Москвы: долгота, широта.
-          defaultLocation: [37.6173, 55.7558],
-          // root по умолчанию у виджета называется так же, поэтому он всё равно
-          // подхватит наш контейнер. Указываем явно, чтобы это было видно.
-          root: 'cdek-map',
-          popup: true,
-          servicePath: '/api/cdek-widget',
-          goods: parcels(),
-          // Показываем только обычную «Посылку»: экспресс вдвое дороже при тех же сроках.
-          tariffs: { office: [136, 368], door: [137] },
-          onChoose(type, tariff, address) {
-            // Имена полей у виджета могут отличаться от версии к версии,
-            // поэтому берём первое подходящее, а не одно жёстко заданное.
-            const a = address || {};
-            const code = a.code || a.id || '';
-            const addr = a.address_full || a.address || a.name || '';
-            const city = a.city || a.cityName || document.getElementById('fCity').value.trim();
-            const price = tariff && (tariff.delivery_sum || tariff.sum || tariff.price);
-            chosenDelivery = {
-              kind: String(type).includes('door') ? 'courier' : 'pvz',
-              city, pointCode: code, pointAddress: addr,
-            };
-            mapBox.hidden = true;
-            picked.hidden = false;
-            picked.textContent = addr
-              ? `Выбрано: ${addr}${price ? `, доставка ${price} ₽` : ''}`
-              : 'Пункт выдачи выбран.';
-          },
-        });
-      } else {
-        widget.updateParcels?.(parcels());
-      }
-      mapBox.hidden = false;
-      widget.open();
-
-      // Виджет открывается даже когда карта не загрузилась, и покупатель
-      // видит пустой белый прямоугольник. Проверяем, поднялся ли движок карт,
-      // и если нет — молча возвращаемся к списку пунктов.
-      setTimeout(() => {
-        if (typeof window.ymaps3 === 'undefined') {
-          mapBox.hidden = true;
-          fallbackToCity('Карта временно недоступна. Укажите город, и мы покажем пункты выдачи списком.');
-        }
-      }, 7000);
+      const res = await fetch('/api/delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pointsFor: city }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.points?.length) throw new Error(data.error || 'Пункты выдачи не найдены');
+      cdekNote.textContent = `Пунктов в городе ${data.city || city}: ${data.points.length}. Выберите на карте.`;
+      await openOwnMap(data.points, data.city || city);
     } catch (err) {
-      fallbackToCity('Карта недоступна. Укажите город, посчитаем доставку списком.');
+      cdekNote.textContent = String(err.message || err);
     } finally {
       mapBtn.disabled = false;
       mapBtn.textContent = was;
     }
+  });
+
+  // ── своя карта пунктов выдачи, без чужих ключей ──
+  // Подложка OpenStreetMap, библиотека Leaflet, точки берём из нашего же
+  // /api/delivery. Ни ключей, ни лимитов, ни зависимости от сторонних сервисов.
+  const ownMap = document.getElementById('ownMap');
+  let leafletLoading = null;
+  let mapInstance = null;
+
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(true);
+    if (leafletLoading) return leafletLoading;
+    leafletLoading = new Promise((resolve) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+      js.onload = () => resolve(Boolean(window.L));
+      js.onerror = () => resolve(false);
+      document.head.appendChild(js);
+      setTimeout(() => resolve(Boolean(window.L)), 10000);
+    });
+    return leafletLoading;
+  }
+
+  async function openOwnMap(points, city) {
+    const ok = await loadLeaflet();
+    if (!ok) {
+      cdekNote.hidden = false;
+      cdekNote.textContent = 'Карта не загрузилась. Выберите пункт из списка выше.';
+      return;
+    }
+    const withCoords = points.filter((p) => p.lat && p.lon);
+    if (!withCoords.length) {
+      cdekNote.hidden = false;
+      cdekNote.textContent = 'У пунктов этого города нет координат, выберите из списка.';
+      return;
+    }
+
+    ownMap.hidden = false;
+    if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+    ownMap.innerHTML = '';
+
+    mapInstance = window.L.map(ownMap).setView([withCoords[0].lat, withCoords[0].lon], 11);
+    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap',
+    }).addTo(mapInstance);
+
+    const group = [];
+    withCoords.forEach((p) => {
+      const marker = window.L.marker([p.lat, p.lon]).addTo(mapInstance);
+      const safe = (p.address || p.name || '').replace(/</g, '&lt;');
+      marker.bindPopup(
+        `<b>${safe}</b><br>${p.workTime ? p.workTime + '<br>' : ''}` +
+        `<button type="button" data-pick="${p.code}" style="margin-top:6px">Привезти сюда</button>`
+      );
+      group.push([p.lat, p.lon]);
+    });
+    if (group.length > 1) mapInstance.fitBounds(group, { padding: [30, 30] });
+
+    // выбор пункта прямо на карте
+    ownMap.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-pick]');
+      if (!btn) return;
+      const code = btn.dataset.pick;
+      const point = withCoords.find((x) => String(x.code) === String(code));
+      if (!point) return;
+      chosenDelivery = { kind: 'pvz', city, pointCode: point.code, pointAddress: point.address };
+      if (pvzSelect) pvzSelect.value = point.code;
+      picked.hidden = false;
+      picked.textContent = `Выбрано: ${point.address}`;
+      ownMap.hidden = true;
+    });
+  }
+
+  // закрытие карты по Escape и кликом мимо
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !ownMap.hidden) ownMap.hidden = true;
   });
 
   // ── конкретный пункт выдачи ──
