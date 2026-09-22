@@ -61,11 +61,6 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
             <option>Самовывоз с маслодельни</option>
           </select>
         </div>
-        <div class="field" id="cdekWidgetBox" hidden>
-          <label>Доставка СДЭК</label>
-          <button type="button" class="btn btn-dark" id="cdekMapBtn" style="width:100%">Выбрать пункт выдачи на карте</button>
-          <div class="pay-note" id="cdekPicked" hidden></div>
-        </div>
         <div id="cdek-map" class="cdek-map" hidden data-maps-key={mapsKey}></div>
         <div id="ownMap" class="cdek-map" hidden></div>
         <div class="field" id="cdekBox" hidden>
@@ -76,6 +71,11 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
           </div>
           <div class="pay-note" id="cdekNote" hidden></div>
           <div class="cdek-opts" id="cdekOpts" hidden></div>
+          <div class="field" id="cdekWidgetBox" hidden style="margin-top:10px">
+            <label>Где забрать заказ</label>
+            <button type="button" class="btn btn-dark" id="cdekMapBtn" style="width:100%">Выбрать пункт выдачи на карте</button>
+            <div class="pay-note" id="cdekPicked" hidden></div>
+          </div>
           <div class="field" id="pvzField" hidden style="margin-top:10px">
             <label for="fPvz">Пункт выдачи</label>
             <select id="fPvz"></select>
@@ -296,9 +296,10 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     const mode = deliverySelect ? deliverySelect.value : '';
     const isCdek = mode.startsWith('СДЭК');
     const isPickup = mode.startsWith('Самовывоз');
-    widgetBox.hidden = !(canPay && isCdek);
     cdekBox.hidden = !(canPay && isCdek);
-    addrField.hidden = !mode || isCdek || isPickup;
+    // Для СДЭКа адрес и карта включаются ниже, после выбора способа получения.
+    if (isCdek) { widgetBox.hidden = true; addrField.hidden = true; }
+    else { widgetBox.hidden = true; addrField.hidden = !mode || isPickup; }
     if (!isCdek) {
       resetDelivery();
       picked.hidden = true;
@@ -341,6 +342,8 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
     cdekOpts.innerHTML = '';
     cdekNote.hidden = true;
     document.getElementById('pvzField').hidden = true;
+    const wb = document.getElementById('cdekWidgetBox');
+    if (wb) wb.hidden = true;
     const pn = document.getElementById('pvzNote');
     if (pn) { pn.hidden = true; pn.textContent = ''; }
   }
@@ -365,10 +368,11 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
       if (!res.ok || !data.options?.length) throw new Error(data.error || 'Не удалось рассчитать доставку');
 
       cdekOpts.hidden = false;
-      cdekOpts.innerHTML = data.options.map((o, i) => `
+      cdekOpts.innerHTML = '<div class="cdek-opts-title">Выберите, как получить заказ:</div>' +
+        data.options.map((o, i) => `
         <label class="cdek-opt">
           <input type="radio" name="cdekKind" value="${o.kind}" ${i === 0 ? 'checked' : ''} />
-          <span>${o.kind === 'pvz' ? 'Пункт выдачи СДЭК' : 'Курьером до двери'}
+          <span>${o.kind === 'pvz' ? 'Заберу сам в пункте выдачи' : 'Привезут курьером до двери'}
             <b>${nbsp(o.price)} ₽</b>
             <i>${o.daysMin}–${o.daysMax} дн.</i></span>
         </label>`).join('');
@@ -584,9 +588,24 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   const pvzSelect = document.getElementById('fPvz');
   let pvzLoadedFor = '';
 
-  async function togglePvz() {
+  // Раньше кнопка карты и выбранный пункт висели рядом с вариантом «курьером
+  // до двери»: человек видел и адрес пункта, и курьера одновременно и не
+  // понимал, ждать ему доставку или ехать самому. Теперь показываем только
+  // поля выбранного способа.
+  function applyCdekKind() {
     const isPvz = chosenDelivery?.kind === 'pvz';
+    const isDoor = Boolean(chosenDelivery?.kind) && !isPvz;
+    widgetBox.hidden = !isPvz;
     pvzField.hidden = !isPvz;
+    picked.hidden = !isPvz || !chosenDelivery?.pointAddress;
+    // Курьеру нужен адрес, самовывозу из пункта — нет.
+    addrField.hidden = !isDoor;
+    if (!isPvz) window.__ecoCloseMap?.();
+  }
+
+  async function togglePvz() {
+    applyCdekKind();
+    const isPvz = chosenDelivery?.kind === 'pvz';
     if (!isPvz) return;
 
     const city = chosenDelivery.city;
@@ -632,9 +651,16 @@ const mapsKey = import.meta.env.PUBLIC_YANDEX_MAPS_KEY || '5a2d2a7a-f646-40c7-a9
   // СДЭК отдаёт адрес как «Россия, г. Москва, ул. …» — на телефоне город
   // и страна съедают строку, и в списке не видно самого адреса.
   function shortAddr(addr, city) {
-    let out = String(addr || '').replace(/^Россия,\s*/i, '');
-    const c = String(city || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    if (c) out = out.replace(new RegExp('^(?:г\\.?|город)?\\s*' + c + ',?\\s*', 'i'), '');
+    // СДЭК шлёт «115114, Россия, Москва, Москва, Даниловская наб., 2» —
+    // индекс, страна и дважды город съедают строку на телефоне.
+    let out = String(addr || '')
+      .replace(/^\d{6},\s*/, '')
+      .replace(/^Россия,\s*/i, '');
+    const c = String(city || '').trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (c) {
+      const re = new RegExp('^(?:г\\.?|город)?\\s*' + c + ',?\\s*', 'i');
+      while (re.test(out)) out = out.replace(re, '');
+    }
     return out.trim() || String(addr || '');
   }
   pvzSelect?.addEventListener('change', applyPvz);
