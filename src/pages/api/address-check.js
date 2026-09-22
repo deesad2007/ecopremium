@@ -15,8 +15,18 @@ export const prerender = false;
 
 const rateLimited = makeRateLimiter({ max: 40, windowMs: 10 * 60 * 1000 });
 
-// Нормализуем для сравнения: «г. Москва» и «Москва» — один город.
-const norm = (s) => String(s || '').toLowerCase().replace(/^(г\.|город)\s*/, '').replace(/ё/g, 'е').trim();
+// Нормализуем для сравнения. Геокодер возвращает населённый пункт с типом:
+// «село Дивеево», «пгт Вача», — а человек пишет просто «Дивеево». Без снятия
+// типа любое село считалось бы «другим городом»: на Дивеево это и поймали.
+const TYPE = /^(?:г|гор|город|с|село|п|пос|посёлок|поселок|пгт|рп|д|дер|деревня|ст|станица|х|хутор|аул|сл|слобода)\.?\s+/i;
+const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(TYPE, '').trim();
+
+// «Ростов» и «Ростов-на-Дону» — по сути одно и то же место, поэтому
+// считаем города разными, только если ни один не входит в другой.
+const sameCity = (a, b) => {
+  const x = norm(a), y = norm(b);
+  return Boolean(x) && Boolean(y) && (x === y || x.includes(y) || y.includes(x));
+};
 
 export async function POST({ request, clientAddress }) {
   let body;
@@ -68,7 +78,7 @@ export async function POST({ request, clientAddress }) {
   // Геокодер охотно отвечает и на бессмыслицу: «адрес мой дом» он нашёл
   // как жилой комплекс в Петрозаводске. Поэтому мало точности до дома —
   // адрес обязан оказаться в том же городе, куда человек заказывает.
-  if (city && foundCity && norm(foundCity) !== norm(city)) {
+  if (city && foundCity && !sameCity(foundCity, city)) {
     return json({ ok: false, reason: 'other_city', formatted, foundCity, precision });
   }
   if (precision !== 'exact' && precision !== 'number') {
